@@ -32,10 +32,13 @@ div.tooltip {
 }
 
 path {
-    fill: gray;
+    fill: darkgray;
+    stroke: white;
 }
 path.selected {
-    fill: aqua;
+    fill: lightskyblue;
+    stroke: gray;
+
 }
 .state-borders {
     fill: none;

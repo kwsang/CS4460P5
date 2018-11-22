@@ -30,8 +30,8 @@ var regionSelect = d3.select('body')
 regionNames.forEach(function (region, idx, arr) {
     regionSelect.append('option').text(region);
 });
-// hidden tooltip
-var tooltip = d3.select('body').append('div')
+// hidden hoverTooltip
+var hoverTooltip = d3.select('body').append('div')
     .attr('class', 'hidden tooltip');
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
@@ -94,104 +94,96 @@ d3.csv('csv/colleges.csv', function (d) {
             region: d.region
         };
         // states function
-    }, function (error, states) {
-        // d3 map function
-        d3.json('https://d3js.org/us-10m.v1.json', function (error, us) {
-            if (error) throw error;
-            // create map features
-            var usjson = topojson.feature(us, us.objects.states);
-            // save states data onto d3 map features
-            for (var i = 0; i < usjson.features.length; i++) {
-                var state = usjson.features[i];
-                for (var j = 0; j < states.length; j++) {
-                    if (state.id == states[j].ansi) {
-                        state.name = states[j].name;
-                        state.region = states[j].region;
-                        break;
-                    }
+    }, function (error, stateCSV) {
+        var projection = d3.geoAlbersUsaPr(),
+            path = d3.geoPath().projection(projection);
+        var stateJson = topojson.feature(states, states.objects.states_20m_2017);
+        // save states data onto d3 map features
+        for (var i = 0; i < stateJson.features.length; i++) {
+            var state = stateJson.features[i];
+            console.log(state);
+            for (var j = 0; j < stateCSV.length; j++) {
+                if (state.properties.GEOID == stateCSV[j].ansi) {
+                    state.name = stateCSV[j].name;
+                    state.region = stateCSV[j].region;
+                    break;
                 }
             }
-            var locked = false;
-            // enable dropdown selector function
-            d3.select('#regionSelect')
-                .on('click', function (d) {
-                    var regionSelect = document.getElementById('regionSelect');
-                    var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-                    locked = selectedRegion;
-                    recolorMap(selectedRegion);
-                });
-            // region coloring method
-            function recolorMap(selectedRegion) {
-                mapSVG.selectAll('path')
-                    .data(usjson.features)
-                    .classed('selected', false);
-                if (error) throw error;
-                mapSVG.selectAll('path')
-                    .data(usjson.features)
-                    .filter(function (d) {
-                        return d.region == selectedRegion;
-                    })
-                    .classed('selected', true);
-            };
-            // draw states using map features
-            mapSVG.append('g')
-                .attr('class', 'states')
-                .selectAll('path')
-                .data(usjson.features)
-                .enter().append('path')
-                .attr('d', path)
-                // highlight selected states
-                .classed('selected', function (d) {
-                    if (d.properties.filled) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                })
-                .on('mouseover', function (d) {
-                    if (!locked) {
-                        recolorMap(d.region);
-                        updateVis(d.region);
-                    }
-                })
-                .on('click', function (d) {
-                    if (locked == false) {
-                        recolorMap(d.region);
-                        updateVis(d.region);
-                        locked = d.region;
-                    } else if (locked == d.region) {
-                        recolorMap("");
-                        locked = false;
-                    }
-                })
-                .on('mousemove', function (d) {
-                    var mouse = d3.mouse(mapSVG.node()).map(function (d) {
-                        return parseInt(d);
-                    });
-                    tooltip.classed('hidden', false)
-                        .attr('style', 'left:' + (mouse[0] + 15) +
-                            'px; top:' + (mouse[1] - 35) + 'px')
-                        .html(d.region);
-                })
-                .on('mouseout', function () {
-                    tooltip.classed('hidden', true);
-                });
+        }
 
-            function updateVis(region) {
+        var locked = false;
+        // enable dropdown selector function
+        d3.select('#regionSelect')
+            .on('click', function (d) {
                 var regionSelect = document.getElementById('regionSelect');
-                regionSelect.selectedIndex = regionNames.indexOf(region);
-            }
+                var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
+                locked = selectedRegion;
+                recolorMap(selectedRegion);
+            });
+        // region coloring method
+        function recolorMap(selectedRegion) {
+            mapSVG.selectAll('path')
+                .data(stateJson.features)
+                .classed('selected', false);
+            if (error) throw error;
+            mapSVG.selectAll('path')
+                .data(stateJson.features)
+                .filter(function (d) {
+                    return d.region == selectedRegion;
+                })
+                .classed('selected', true);
+        };
 
-            // draw state boundaries
-            mapSVG.append('path')
-                .attr('class', 'state-borders')
-                .attr('d', path(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; })));
+        var paths_states = mapSVG
+            .append('g').selectAll('path')
+            .data(stateJson.features)
+            .enter().append('path')
+            .attr('d', path)
+            .classed('selected', function (d) {
+                if (d.properties.filled) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+            .on('mouseover', function (d) {
+                if (!locked) {
+                    recolorMap(d.region);
+                    updateVis(d.region);
+                }
+            })
+            .on('click', function (d) {
+                if (locked == false) {
+                    recolorMap(d.region);
+                    updateVis(d.region);
+                    locked = d.region;
+                } else if (locked == d.region) {
+                    recolorMap("");
+                    locked = false;
+                }
+            })
+            .on('mousemove', function (d) {
+                var mouse = d3.mouse(mapSVG.node()).map(function (d) {
+                    return parseInt(d);
+                });
+                hoverTooltip.classed('hidden', false)
+                    .attr('style', 'left:' + (mouse[0] + 15) +
+                        'px; top:' + (mouse[1] - 35) + 'px')
+                    .html(d.region);
+            })
+            .on('mouseout', function () {
+                hoverTooltip.classed('hidden', true);
+            });
 
-            // color initially selected region
+        function updateVis(region) {
             var regionSelect = document.getElementById('regionSelect');
-            var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-            recolorMap(selectedRegion);
-        });
+            regionSelect.selectedIndex = regionNames.indexOf(region);
+        }
+
+        // color initially selected region
+        var regionSelect = document.getElementById('regionSelect');
+        var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
+        recolorMap(selectedRegion);
     });
 });
 
