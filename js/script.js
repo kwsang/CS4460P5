@@ -12,13 +12,15 @@ var mapSVG = d3.select('body')
     .attr('width', width)
     .attr('height', height);
 
-
 var regionSVG = d3.select('body')
     .append('svg')
     .classed('region', true)
     .attr('id', 'regionSVG')
     .attr('width', regionWidth)
-    .attr('height', regionHeight);
+    .attr('height', regionHeight)
+    .append('g')
+    .append('h1')
+    .append('HTML', 'Statistics by Selected Region');
 
 // create region selector
 var regionSelect = d3.select('body')
@@ -28,6 +30,9 @@ var regionSelect = d3.select('body')
 regionNames.forEach(function (region, idx, arr) {
     regionSelect.append('option').text(region);
 });
+// hidden tooltip
+var tooltip = d3.select('body').append('div')
+    .attr('class', 'hidden tooltip');
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
     var s = String(this);
@@ -106,11 +111,13 @@ d3.csv('csv/colleges.csv', function (d) {
                     }
                 }
             }
+            var locked = false;
             // enable dropdown selector function
             d3.select('#regionSelect')
                 .on('click', function (d) {
                     var regionSelect = document.getElementById('regionSelect');
                     var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
+                    locked = selectedRegion;
                     recolorMap(selectedRegion);
                 });
             // region coloring method
@@ -127,7 +134,6 @@ d3.csv('csv/colleges.csv', function (d) {
                     .classed('selected', true);
             };
             // draw states using map features
-            var locked = false;
             mapSVG.append('g')
                 .attr('class', 'states')
                 .selectAll('path')
@@ -149,14 +155,26 @@ d3.csv('csv/colleges.csv', function (d) {
                     }
                 })
                 .on('click', function (d) {
-                    if (!locked) {
+                    if (locked == false) {
                         recolorMap(d.region);
                         updateVis(d.region);
-                        locked = true;
-                    } else {
+                        locked = d.region;
+                    } else if (locked == d.region) {
                         recolorMap("");
                         locked = false;
                     }
+                })
+                .on('mousemove', function (d) {
+                    var mouse = d3.mouse(mapSVG.node()).map(function (d) {
+                        return parseInt(d);
+                    });
+                    tooltip.classed('hidden', false)
+                        .attr('style', 'left:' + (mouse[0] + 15) +
+                            'px; top:' + (mouse[1] - 35) + 'px')
+                        .html(d.region);
+                })
+                .on('mouseout', function () {
+                    tooltip.classed('hidden', true);
                 });
 
             function updateVis(region) {
