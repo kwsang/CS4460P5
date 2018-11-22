@@ -1,26 +1,44 @@
 body {
     font: 12px sans-serif;
 }
-h1 {
+div.title {
     font: 26px sans-serif;
 }
-svg.map {
+svg {
     float: left;
+}
+div.vis {
+    display: inline-block;
+    height: 600px;
+    width: 960px;
+    position:fixed;
+    top:60px;
+    margin-left:0;
+    z-index:1;
 }
 .hidden {
     display: none;
 }
-svg.region {
-    float:right;
+#sections {
+    position:relative;
+    display: inline-block;
+    width: 600px;
+    top:0px;
+    z-index:90;
+    background-color: #ddd;
 }
 .legend {
     position:absolute;
     left:800px;
     top:350px;
 }
+
+.step {
+  margin-bottom: 200px;
+}
 div.tooltip {
     color: #222;
-    background-color: #fff;
+    background-color: #fafafa;
     padding: .5em;
     text-shadow: #f5f5f5 0 1px 0;
     border-radius: 2px;
@@ -39,12 +57,4 @@ path.selected {
     fill: lightskyblue;
     stroke: gray;
 
-}
-.state-borders {
-    fill: none;
-    stroke: black;
-    stroke-width: 0.75px;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-    pointer-events: none;
 }

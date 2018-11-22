@@ -6,24 +6,14 @@ var regionHeight = 400;
 var regionNames = ['FarWest', 'GreatLakes', 'GreatPlains', 'MidAtlantic', 'NewEngland',
     'OutlyingAreas', 'RockyMountains', 'Southeast', 'Southwest'];
 var path = d3.geoPath();
-var mapSVG = d3.select('body')
+var mapSVG = d3.select('#vis')
     .append('svg')
     .classed('map', true)
     .attr('width', width)
     .attr('height', height);
 
-var regionSVG = d3.select('body')
-    .append('svg')
-    .classed('region', true)
-    .attr('id', 'regionSVG')
-    .attr('width', regionWidth)
-    .attr('height', regionHeight)
-    .append('g')
-    .append('h1')
-    .append('HTML', 'Statistics by Selected Region');
-
 // create region selector
-var regionSelect = d3.select('body')
+var regionSelect = d3.select('#sections')
     .append('g')
     .append('select')
     .attr('id', 'regionSelect');
@@ -39,6 +29,17 @@ Number.prototype.pad = function (size) {
     while (s.length < (size || 2)) { s = "0" + s; }
     return s;
 }
+
+// get vertical coordinates of starting position
+sectionPositions = [];
+var startPos;
+d3.selectAll('section').each(function (d, i) {
+    var top = this.getBoundingClientRect().top;
+    if (i === 0) {
+        startPos = top;
+    }
+    sectionPositions.push(top - startPos);
+});
 
 d3.csv('csv/colleges.csv', function (d) {
     return {
@@ -101,7 +102,6 @@ d3.csv('csv/colleges.csv', function (d) {
         // save states data onto d3 map features
         for (var i = 0; i < stateJson.features.length; i++) {
             var state = stateJson.features[i];
-            console.log(state);
             for (var j = 0; j < stateCSV.length; j++) {
                 if (state.properties.GEOID == stateCSV[j].ansi) {
                     state.name = stateCSV[j].name;
@@ -134,6 +134,7 @@ d3.csv('csv/colleges.csv', function (d) {
                 .classed('selected', true);
         };
 
+        // draw state path features
         var paths_states = mapSVG
             .append('g').selectAll('path')
             .data(stateJson.features)
@@ -173,6 +174,9 @@ d3.csv('csv/colleges.csv', function (d) {
             })
             .on('mouseout', function () {
                 hoverTooltip.classed('hidden', true);
+                if (!locked) {
+                    recolorMap("");
+                }
             });
 
         function updateVis(region) {
@@ -184,6 +188,8 @@ d3.csv('csv/colleges.csv', function (d) {
         var regionSelect = document.getElementById('regionSelect');
         var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
         recolorMap(selectedRegion);
+
+
     });
 });
 
