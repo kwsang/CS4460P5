@@ -1,12 +1,24 @@
 var width = 960;
 var height = 600;
+var regionWidth = 600;
+var regionHeight = 400;
+
 var regionNames = ['FarWest', 'GreatLakes', 'GreatPlains', 'MidAtlantic', 'NewEngland',
     'OutlyingAreas', 'RockyMountains', 'Southeast', 'Southwest'];
 var path = d3.geoPath();
-var svg = d3.select('body')
+var mapSVG = d3.select('body')
     .append('svg')
+    .classed('map', true)
     .attr('width', width)
     .attr('height', height);
+
+
+var regionSVG = d3.select('body')
+    .append('svg')
+    .classed('region', true)
+    .attr('id', 'regionSVG')
+    .attr('width', regionWidth)
+    .attr('height', regionHeight);
 
 // create region selector
 var regionSelect = d3.select('body')
@@ -103,11 +115,11 @@ d3.csv('csv/colleges.csv', function (d) {
                 });
             // region coloring method
             function recolorMap(selectedRegion) {
-                svg.selectAll('path')
+                mapSVG.selectAll('path')
                     .data(usjson.features)
                     .classed('selected', false);
                 if (error) throw error;
-                svg.selectAll('path')
+                mapSVG.selectAll('path')
                     .data(usjson.features)
                     .filter(function (d) {
                         return d.region == selectedRegion;
@@ -115,7 +127,8 @@ d3.csv('csv/colleges.csv', function (d) {
                     .classed('selected', true);
             };
             // draw states using map features
-            svg.append('g')
+            var locked = false;
+            mapSVG.append('g')
                 .attr('class', 'states')
                 .selectAll('path')
                 .data(usjson.features)
@@ -130,11 +143,20 @@ d3.csv('csv/colleges.csv', function (d) {
                     }
                 })
                 .on('mouseover', function (d) {
-                    recolorMap(d.region);
-                    updateVis(d.region);
+                    if (!locked) {
+                        recolorMap(d.region);
+                        updateVis(d.region);
+                    }
                 })
                 .on('click', function (d) {
-
+                    if (!locked) {
+                        recolorMap(d.region);
+                        updateVis(d.region);
+                        locked = true;
+                    } else {
+                        recolorMap("");
+                        locked = false;
+                    }
                 });
 
             function updateVis(region) {
@@ -143,7 +165,7 @@ d3.csv('csv/colleges.csv', function (d) {
             }
 
             // draw state boundaries
-            svg.append('path')
+            mapSVG.append('path')
                 .attr('class', 'state-borders')
                 .attr('d', path(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; })));
 

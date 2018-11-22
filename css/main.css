@@ -4,6 +4,12 @@ body {
 h1 {
     font: 26px sans-serif;
 }
+svg.map {
+    float: left;
+}
+svg.region {
+    float:right;
+}
 .legend {
     position:absolute;
     left:800px;
