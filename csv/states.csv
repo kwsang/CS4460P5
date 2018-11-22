@@ -1,0 +1,58 @@
+STATE,STUSAB,STATE_NAME,STATENS,region
+01,AL,Alabama,01779775,Southeast
+02,AK,Alaska,01785533,FarWest
+04,AZ,Arizona,01779777,Southwest
+05,AR,Arkansas,00068085,Southeast
+06,CA,California,01779778,FarWest
+08,CO,Colorado,01779779,RockyMountains
+09,CT,Connecticut,01779780,NewEngland
+10,DE,Delaware,01779781,MidAtlantic
+11,DC,District of Columbia,01702382,N/A
+12,FL,Florida,00294478,Southeast
+13,GA,Georgia,01705317,Southeast
+15,HI,Hawaii,01779782,FarWest
+16,ID,Idaho,01779783,RockyMountains
+17,IL,Illinois,01779784,GreatLakes
+18,IN,Indiana,00448508,GreatLakes
+19,IA,Iowa,01779785,GreatPlains
+20,KS,Kansas,00481813,GreatPlains
+21,KY,Kentucky,01779786,Southeast
+22,LA,Louisiana,01629543,Southeast
+23,ME,Maine,01779787,NewEngland
+24,MD,Maryland,01714934,MidAtlantic
+25,MA,Massachusetts,00606926,NewEngland
+26,MI,Michigan,01779789,GreatLakes
+27,MN,Minnesota,00662849,GreatPlains
+28,MS,Mississippi,01779790,Southeast
+29,MO,Missouri,01779791,GreatPlains
+30,MT,Montana,00767982,RockyMountains
+31,NE,Nebraska,01779792,GreatPlains
+32,NV,Nevada,01779793,FarWest
+33,NH,New Hampshire,01779794,NewEngland
+34,NJ,New Jersey,01779795,NewEngland
+35,NM,New Mexico,00897535,Southwest
+36,NY,New York,01779796,MidAtlantic
+37,NC,North Carolina,01027616,Southeast
+38,ND,North Dakota,01779797,GreatPlains
+39,OH,Ohio,01085497,GreatLakes
+40,OK,Oklahoma,01102857,Southwest
+41,OR,Oregon,01155107,FarWest
+42,PA,Pennsylvania,01779798,MidAtlantic
+44,RI,Rhode Island,01219835,NewEngland
+45,SC,South Carolina,01779799,Southeast
+46,SD,South Dakota,01785534,GreatPlains
+47,TN,Tennessee,01325873,Southeast
+48,TX,Texas,01779801,Southwest
+49,UT,Utah,01455989,RockyMountains
+50,VT,Vermont,01779802,NewEngland
+51,VA,Virginia,01779803,Southeast
+53,WA,Washington,01779804,FarWest
+54,WV,West Virginia,01779805,Southeast
+55,WI,Wisconsin,01779806,GreatLakes
+56,WY,Wyoming,01779807,RockyMountains
+60,AS,American Samoa,01802701,OutlyingAreas
+66,GU,Guam,01802705,OutlyingAreas
+69,MP,Northern Mariana Islands,01779809,OutlyingAreas
+72,PR,Puerto Rico,01779808,OutlyingAreas
+74,UM,U.S. Minor Outlying Islands,01878752,OuyingAreas
+78,VI,U.S. Virgin Islands,01802710,OutlyingAreas
