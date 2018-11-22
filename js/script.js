@@ -131,10 +131,16 @@ d3.csv('csv/colleges.csv', function (d) {
                 })
                 .on('mouseover', function (d) {
                     recolorMap(d.region);
+                    updateVis(d.region);
                 })
                 .on('click', function (d) {
 
                 });
+
+            function updateVis(region) {
+                var regionSelect = document.getElementById('regionSelect');
+                regionSelect.selectedIndex = regionNames.indexOf(region);
+            }
 
             // draw state boundaries
             svg.append('path')
