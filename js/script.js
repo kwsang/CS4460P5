@@ -8,6 +8,7 @@ var svg = d3.select('body')
     .attr('width', width)
     .attr('height', height);
 
+// create region selector
 var regionSelect = d3.select('body')
     .append('g')
     .append('select')
@@ -15,7 +16,7 @@ var regionSelect = d3.select('body')
 regionNames.forEach(function (region, idx, arr) {
     regionSelect.append('option').text(region);
 });
-
+// method to create leading zeroes
 Number.prototype.pad = function (size) {
     var s = String(this);
     while (s.length < (size || 2)) { s = "0" + s; }
@@ -24,6 +25,7 @@ Number.prototype.pad = function (size) {
 
 d3.csv('csv/colleges.csv', function (d) {
     return {
+        // parse project data
         control: d.control,
         region: d.region,
         locale: d.locale,
@@ -62,78 +64,88 @@ d3.csv('csv/colleges.csv', function (d) {
         avgEarnings: +d['Mean Earnings 8 years After Entry'],
         mdnEarnings: +d['Median Earnings 8 years After Entry']
     };
+    // main d3 function
 }, function (error, csv) {
     if (error) throw error;
-
-
-    d3.json('https://d3js.org/us-10m.v1.json', function (error, us) {
-        if (error) throw error;
-        var usjson = topojson.feature(us, us.objects.states);
-
-        svg.append('g')
-            .attr('class', 'states')
-            .selectAll('path')
-            .data(usjson.features)
-            .enter().append('path')
-            .attr('d', path)
-            .classed('selected', function (d) {
-                var val = d.properties.filled;
-                if (val) {
-                    return true;
-                } else {
-                    return false;
+    d3.csv('csv/states.csv', function (d) {
+        // parse states data, necessary to define regions
+        return {
+            ansi: (+d.STATE).pad(2),
+            stusab: d.STUSAB,
+            name: d.STATE_NAME,
+            statens: d.STATENS,
+            region: d.region
+        };
+        // states function
+    }, function (error, states) {
+        // d3 map function
+        d3.json('https://d3js.org/us-10m.v1.json', function (error, us) {
+            if (error) throw error;
+            // create map features
+            var usjson = topojson.feature(us, us.objects.states);
+            // save states data onto d3 map features
+            for (var i = 0; i < usjson.features.length; i++) {
+                var state = usjson.features[i];
+                for (var j = 0; j < states.length; j++) {
+                    if (state.id == states[j].ansi) {
+                        state.name = states[j].name;
+                        state.region = states[j].region;
+                        break;
+                    }
                 }
-            })
-            .on('mouseover', function (d) {
-                
-            })
-            .on('click', function (d) {
-
-            });
-
-        svg.append('path')
-            .attr('class', 'state-borders')
-            .attr('d', path(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; })));
-
-        var regionSelect = document.getElementById('regionSelect');
-        var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-        recolorMap(selectedRegion);
-
-        function recolorMap(selectedRegion) {
-            svg.selectAll('path')
-                .data(usjson.features)
-                .classed('selected', false);
-            d3.csv('csv/states.csv', function (d) {
-                return {
-                    ansi: (+d.STATE).pad(2),
-                    stusab: d.STUSAB,
-                    name: d.STATE_NAME,
-                    statens: d.STATENS,
-                    region: d.region
-                };
-            }, function (error, data) {
-                var regionArr = [];
-                if (error) throw error;
-                data.forEach(function (d) {
-                    if (d.region == selectedRegion) {
-                        regionArr.push(d.ansi);
-                    };
+            }
+            // enable dropdown selector function
+            d3.select('#regionSelect')
+                .on('click', function (d) {
+                    var regionSelect = document.getElementById('regionSelect');
+                    var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
+                    recolorMap(selectedRegion);
                 });
+            // region coloring method
+            function recolorMap(selectedRegion) {
+                svg.selectAll('path')
+                    .data(usjson.features)
+                    .classed('selected', false);
+                if (error) throw error;
                 svg.selectAll('path')
                     .data(usjson.features)
                     .filter(function (d) {
-                        return regionArr.indexOf(d.id) != -1;
+                        return d.region == selectedRegion;
                     })
                     .classed('selected', true);
-            });
-        }
+            };
+            // draw states using map features
+            svg.append('g')
+                .attr('class', 'states')
+                .selectAll('path')
+                .data(usjson.features)
+                .enter().append('path')
+                .attr('d', path)
+                // highlight selected states
+                .classed('selected', function (d) {
+                    if (d.properties.filled) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                .on('mouseover', function (d) {
+                    recolorMap(d.region);
+                })
+                .on('click', function (d) {
 
-        d3.select('#regionSelect')
-            .on('click', function (d) {
-                var regionSelect = document.getElementById('regionSelect');
-                var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-                recolorMap(selectedRegion);
-            });
+                });
+
+            // draw state boundaries
+            svg.append('path')
+                .attr('class', 'state-borders')
+                .attr('d', path(topojson.mesh(us, us.objects.states, function (a, b) { return a !== b; })));
+
+            // color initially selected region
+            var regionSelect = document.getElementById('regionSelect');
+            var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
+            recolorMap(selectedRegion);
+        });
     });
 });
 
