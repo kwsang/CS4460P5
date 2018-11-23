@@ -2,31 +2,29 @@ body {
     font: 12px sans-serif;
 }
 div.title {
-    font: 26px sans-serif;
+    font: 20px sans-serif;
 }
-svg {
-    float: left;
-}
-div.vis {
+
+#vis {
     display: inline-block;
-    height: 600px;
-    width: 960px;
     position:fixed;
-    top:60px;
     margin-left:0;
     z-index:1;
 }
 .hidden {
     display: none;
 }
+
 #sections {
     position:relative;
     display: inline-block;
     width: 600px;
+    margin-left:940px;
     top:0px;
     z-index:90;
-    background-color: #ddd;
+    background-color: #fbfbfb;
 }
+
 .legend {
     position:absolute;
     left:800px;

@@ -1,4 +1,4 @@
-var width = 960;
+var width = 940;
 var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
@@ -20,8 +20,9 @@ var regionSelect = d3.select('#sections')
 regionNames.forEach(function (region, idx, arr) {
     regionSelect.append('option').text(region);
 });
+
 // hidden hoverTooltip
-var hoverTooltip = d3.select('body').append('div')
+var hoverTooltip = d3.select('#vis').append('div')
     .attr('class', 'hidden tooltip');
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
