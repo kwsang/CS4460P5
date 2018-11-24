@@ -4,11 +4,31 @@ var regionWidth = 600;
 var regionHeight = 400;
 
 var selectedState = "";
+var lastIndex = -1;
+var activeIndex = 0;
+var activateFunctions = [];
+var updateFunctions = []
+for (var i = 0; i < 9; i++) {
+    activateFunctions[i] = function () { };
+    updateFunctions[i] = function () { };
+}
 
 // hidden hoverTooltip
 var hoverTooltip = d3.select('#vis').append('div')
     .attr('id', 'tooltip')
     .attr('class', 'hidden tooltip');
+
+var timeBar = d3.select('#options')
+    .append('svg')
+    .attr('width', width)
+    .append('rect')
+    .attr('x', 5)
+    .attr('x', 5)
+    .attr('width', width)
+    .attr('height', 10);
+
+var x = d3.scaleTime().range([0, width]);
+
 
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
@@ -23,26 +43,26 @@ scroll(d3.selectAll('.step'));
 d3.queue()
     .defer(d3.csv, 'csv/aircraft_incidents.csv', function (d) {
         return {
-            number: d['Accident Number'],
-            date: d['Event Date'],
+            number: d['Accident_Number'],
+            date: new Date(d['Event_Date']),
             location: d['Location'],
             country: d['Country'],
             latitude: +d['Latitude'],
             longitude: +d['Longitude'],
-            airportCode: d['Airport Code'],
-            airportName: d['Airport Name'],
-            severity: d['Injury Severity'],
-            damage: d['Aircraft Damage'],
-            registration: d['Registration Number'],
+            airportCode: d['Airport_Code'],
+            airportName: d['Airport_Name'],
+            severity: d['Injury_Severity'],
+            damage: d['Aircraft_Damage'],
+            registration: d['Registration_Number'],
             make: d['Make'],
             model: d['Model'],
             schedule: d['Schedule'],
-            carrier: d['Air Carrier'],
-            fatalies: +d['Total Fatal Injuries'],
-            injuries: +d['Total Serious Injuries'],
-            uninjured: +d['Total Uninjured'],
-            weather: d['Weather Condition'],
-            flightPhase: d['Broad Phase of Flight'],
+            carrier: d['Air_Carrier'],
+            fatalies: +d['Total_Fatal_Injuries'],
+            injuries: +d['Total_Serious_Injuries'],
+            uninjured: +d['Total_Uninjured'],
+            weather: d['Weather_Condition'],
+            flightPhase: d['Broad_Phase_of_Flight'],
             name: d['Location']
         };
     })
@@ -86,6 +106,14 @@ function display(error, collegeCSV, stateCSV) {
     var selection = collegeCSV.filter(function (d) {
         return (d.country == "United States" && projection([d.longitude, d.latitude]));
     });
+
+    var brush = d3.brushX()
+        .extent([d3.min(selection, function (d) { return d.date; }), d3.max(selection, function (d) { return d.date; })])
+        .on('brush end', brushed);
+
+    function brushed() {
+
+    }
 
     var locked = false;
 
@@ -136,6 +164,29 @@ function display(error, collegeCSV, stateCSV) {
             }
         });
 
+    activateFunctions[0] = shrinkHeatMaps;
+    activateFunctions[1] = drawHeatMaps;
+
+    function drawHeatMaps() {
+        mapSVG.selectAll('circle')
+            .data(selection)
+            .transition()
+            .duration(1000)
+            .style('opacity', 0.075)
+            .attr('r', 12)
+            .attr('pointer-events', 'none');
+    }
+
+    function shrinkHeatMaps() {
+        mapSVG.selectAll('circle')
+            .data(selection)
+            .transition()
+            .duration(1000)
+            .style('opacity', 1)
+            .attr('r', 4)
+            .attr('pointer-events', 'all');
+    }
+
 
     var circles = mapSVG
         .append('g')
@@ -161,9 +212,13 @@ function display(error, collegeCSV, stateCSV) {
             }
             return pos[1];
         })
-        .attr('r', '3.5')
         .on('mouseover', showTooltip)
-        .on('mouseout', hideTooltip);
+        .on('mouseout', hideTooltip)
+        .attr('r', '0.5')
+        .transition()
+        .duration(750)
+        .attr('r', '4');
+
 
 
     function showTooltip(d) {
@@ -173,7 +228,8 @@ function display(error, collegeCSV, stateCSV) {
         hoverTooltip.classed('hidden', false)
             .attr('style', 'left:' + (mouse[0] + 15) +
                 'px; top:' + (mouse[1] - 35) + 'px')
-            .html(d.name + "<br />");
+            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.date + '<br />' + d.severity);
+
     }
 
     function hideTooltip(d) {
@@ -184,9 +240,17 @@ function display(error, collegeCSV, stateCSV) {
         // highlight current step text
         d3.selectAll('.step')
             .style('opacity', function (d, i) { return i === index ? 1 : 0.1; });
+        activeIndex = index;
+        var sign = (activeIndex - lastIndex) < 0 ? -1 : 1;
+        var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
+        scrolledSections.forEach(function (i) {
+            activateFunctions[i]();
+        });
+        lastIndex = activeIndex;
     });
 
     scroll.on('progress', function (index, progress) {
+        updateFunctions[index](progress);
     });
 }
 
