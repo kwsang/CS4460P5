@@ -32,9 +32,9 @@ scroll(d3.selectAll('.step'));
 d3.csv('csv/colleges.csv', function (d) {
     return {
         // parse project data
-        control: d.control,
-        region: d.region,
-        locale: d.locale,
+        control: d['Control'],
+        region: d['Region'],
+        locale: d['Locale'],
         admissionRate: +d['Admission Rate'],
         actMdn: +d['ACT Median'],
         satAvg: +d['SAT Average'],
@@ -73,6 +73,7 @@ d3.csv('csv/colleges.csv', function (d) {
 }, mainDisplay);
 
 function mainDisplay(error, csv) {
+    console.log(csv[0]);
     if (error) throw error;
     d3.csv('csv/states.csv', function (d) {
         // parse states data, necessary to define regions
@@ -121,6 +122,7 @@ function display(error, stateCSV) {
             locked = selectedRegion;
             recolorMap(selectedRegion);
         });
+        
     // region coloring method
     function recolorMap(selectedRegion) {
         mapSVG.selectAll('path')

@@ -8,7 +8,7 @@ div.title {
 #vis {
     display: inline-block;
     position:fixed;
-    margin-left:0;
+    margin-left:50px;
     z-index:1;
 }
 .hidden {
@@ -18,27 +18,30 @@ div.title {
 #sections {
     position:relative;
     display: inline-block;
-    width: 600px;
-    margin-left:940px;
-    top:150px;
+    width: 400px;
+    margin-left:1000px;
+    padding-top: 60px;
+    top:0;
     z-index:90;
+    padding-bottom: 400px;
     background-color: #fdfdfd;
 }
 
-.legend {
-    position:absolute;
-    left:800px;
-    top:350px;
-}
-
 .step {
-  margin-bottom: 200px;
-  opacity: 0.1;
+    opacity: 0.1;
+    margin-bottom: 200px;
+    font-family: "TiemposTextWeb-Regular","Georgia";
+    font-size: 16px;
+    line-height: 23px;
 }
 
 .section-body {
     font: 14px sans-serif;
 }
+
+#extra-space {
+    height: 400px;
+  }
 
 div.tooltip {
     color: #222;
