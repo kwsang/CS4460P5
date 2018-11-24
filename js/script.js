@@ -3,17 +3,8 @@ var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
 
-var regionNames = ['FarWest', 'GreatLakes', 'GreatPlains', 'MidAtlantic', 'NewEngland',
-    'OutlyingAreas', 'RockyMountains', 'Southeast', 'Southwest'];
+var selectedState = "";
 
-// create region selector
-var regionSelect = d3.select('#access-row')
-    .append('g')
-    .append('select')
-    .attr('id', 'regionSelect');
-regionNames.forEach(function (region, idx, arr) {
-    regionSelect.append('option').text(region);
-});
 var admissionsButton = d3.select('#access-row')
     .append('g')
     .append('button')
@@ -57,46 +48,28 @@ var scroll = scroller().container(d3.select('#sections'));
 scroll(d3.selectAll('.step'));
 
 d3.queue()
-    .defer(d3.csv, 'csv/colleges.csv', function (d) {
+    .defer(d3.csv, 'csv/aircraft_incidents.csv', function (d) {
         return {
-            // parse project data
-            control: d['Control'],
-            region: d['Region'],
-            locale: d['Locale'],
-            admissionRate: +d['Admission Rate'],
-            actMdn: +d['ACT Median'],
-            satAvg: +d['SAT Average'],
-            population: +d['Undergrad Population'],
-            whitePop: +d['% White'],
-            blackPop: +d['% Black'],
-            HispanicPop: +d['% Hispanic'],
-            indianPop: +d['% American Indian'],
-            pacificPop: +d['% Pacific Islander'],
-            biracialPop: +d['% Biracial'],
-            nrAlienPop: +d['% Nonresident Aliens'],
-            partTimers: +d['% Part-time Undergrads'],
-            avgCost: +d['Average Cost'],
-            studentCosts: +d['Expenditure Per Student'],
-            avgSalary: +d['Average Faculty Salary'],
-            faculty: +d['% Full-time Faculty'],
-            pellGrant: +d['% Undergrads with Pell Grant'],
-            completionRate: +d['Completion Rate 150% time'],
-            retentionRate: +d['Retention Rate (First Time Students)'],
-            olderUndergrads: +d['% Undergrads 25+ y.o.'],
-            defaultRate: +d['3 Year Default Rate'],
-            medianDebt: +d['Median Debt'],
-            medianGradDebt: +d['Median Debt on Graduation'],
-            medianWithdrawDebt: +d['Median Debt on Withdrawal'],
-            federalLoans: +d['% Federal Loans'],
-            pellGrants: +d['% Pell Grant Recipients'],
-            avgEntryAge: +d['Average Age of Entry'],
-            avgFamilyIncome: +d['Average Family Income'],
-            mdnFamilyIncome: +d['Median Family Income'],
-            povertyRate: +d['Poverty Rate'],
-            unemployedRate: +d['Number of Unemployed 8 years after entry'],
-            employedRate: +d['Number of Employed 8 years after entry'],
-            avgEarnings: +d['Mean Earnings 8 years After Entry'],
-            mdnEarnings: +d['Median Earnings 8 years After Entry']
+            number: d['Accident Number'],
+            date: d['Event Date'],
+            location: d['Location'],
+            country: d['Country'],
+            latitude: +d['Latitude'],
+            longitude: +d['Longitude'],
+            airportCode: d['Airport Code'],
+            airportName: d['Airport Name'],
+            severity: d['Injury Severity'],
+            damage: d['Aircraft Damage'],
+            registration: d['Registration Number'],
+            make: d['Make'],
+            model: d['Model'],
+            schedule: d['Schedule'],
+            carrier: d['Air Carrier'],
+            fatalies: +d['Total Fatal Injuries'],
+            injuries: +d['Total Serious Injuries'],
+            uninjured: +d['Total Uninjured'],
+            weather: d['Weather Condition'],
+            flightPhase: d['Broad Phase of Flight']
         };
     })
     .defer(d3.csv, 'csv/states.csv', function (d) {
@@ -104,8 +77,7 @@ d3.queue()
             ansi: (+d.STATE).pad(2),
             stusab: d.STUSAB,
             name: d.STATE_NAME,
-            statens: d.STATENS,
-            region: d.region
+            statens: d.STATENS
         };
     })
     .await(display);
@@ -132,24 +104,15 @@ function display(error, collegeCSV, stateCSV) {
         for (var j = 0; j < stateCSV.length; j++) {
             if (state.properties.GEOID == stateCSV[j].ansi) {
                 state.name = stateCSV[j].name;
-                state.region = stateCSV[j].region;
                 break;
             }
         }
     }
 
     var locked = false;
-    // enable dropdown selector function
-    d3.select('#regionSelect')
-        .on('click', function (d) {
-            var regionSelect = document.getElementById('regionSelect');
-            var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-            locked = selectedRegion;
-            recolorMap(selectedRegion);
-        });
 
-    // region coloring method
-    function recolorMap(selectedRegion) {
+    // state coloring method
+    function recolorMap(selectedState) {
         mapSVG.selectAll('path')
             .data(stateJson.features)
             .classed('selected', false);
@@ -157,7 +120,7 @@ function display(error, collegeCSV, stateCSV) {
         mapSVG.selectAll('path')
             .data(stateJson.features)
             .filter(function (d) {
-                return d.region == selectedRegion;
+                return d.name == selectedState;
             })
             .classed('selected', true);
     };
@@ -177,16 +140,14 @@ function display(error, collegeCSV, stateCSV) {
         })
         .on('mouseover', function (d) {
             if (!locked) {
-                recolorMap(d.region);
-                updateVis(d.region);
+                recolorMap(d.name);
             }
         })
         .on('click', function (d) {
             if (locked == false) {
-                recolorMap(d.region);
-                updateVis(d.region);
-                locked = d.region;
-            } else if (locked == d.region) {
+                recolorMap(d.name);
+                locked = d.name;
+            } else if (locked == d.name) {
                 recolorMap("");
                 locked = false;
             }
@@ -198,8 +159,8 @@ function display(error, collegeCSV, stateCSV) {
             hoverTooltip.classed('hidden', false)
                 .attr('style', 'left:' + (mouse[0] + 15) +
                     'px; top:' + (mouse[1] - 35) + 'px')
-                .html(d.region + "<br />");
-            generateTooltip(d.region);
+                .html(d.name + "<br />");
+            generateTooltip(d.name);
         })
         .on('mouseout', function () {
             hoverTooltip.classed('hidden', true);
@@ -213,24 +174,14 @@ function display(error, collegeCSV, stateCSV) {
         admissionsButton.classed('selected', true);
     });
 
-    function generateTooltip(region) {
+    function generateTooltip(state) {
         collegeCSV.filter(function (d) {
-            return d.region == selectedRegion;
+            return d.name == selectedState;
         })
         d3.select('#tooltip')
             .append('g')
 
     }
-
-    function updateVis(region) {
-        var regionSelect = document.getElementById('regionSelect');
-        regionSelect.selectedIndex = regionNames.indexOf(region);
-    }
-
-    // color initially selected region
-    var regionSelect = document.getElementById('regionSelect');
-    var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
-    recolorMap(selectedRegion);
 
     scroll.on('active', function (index) {
         // highlight current step text
