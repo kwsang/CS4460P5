@@ -18,6 +18,12 @@ body {
     margin-left:50px;
     z-index:1;
 }
+.x-axis {
+    padding-top: 20px;
+}
+.brush {
+    
+}
 
 #options {
     margin-top:600px;

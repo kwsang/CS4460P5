@@ -2,6 +2,7 @@ var width = 940;
 var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
+var circleStyle = { radius: 4, opacity: 1, pointer: "all" };
 
 var selectedState = "";
 var lastIndex = -1;
@@ -13,22 +14,32 @@ for (var i = 0; i < 9; i++) {
     updateFunctions[i] = function () { };
 }
 
+var mapSVG = d3.select('#vis')
+    .append('svg')
+    .classed('map', true)
+    .attr('width', width)
+    .attr('height', height);
+
+var optionsSVG = d3.select('#options')
+    .append('svg')
+    .attr('width', width)
+
 // hidden hoverTooltip
 var hoverTooltip = d3.select('#vis').append('div')
     .attr('id', 'tooltip')
     .attr('class', 'hidden tooltip');
 
-var timeBar = d3.select('#options')
-    .append('svg')
-    .attr('width', width)
-    .append('rect')
+var timeBar = optionsSVG.append('rect')
     .attr('x', 5)
     .attr('x', 5)
     .attr('width', width)
     .attr('height', 10);
 
-var x = d3.scaleTime().range([0, width]);
-
+var xScale = d3.scaleTime().range([0, width]);
+var timeAxis = d3.axisBottom(xScale);
+optionsSVG.append('text')
+    .style('text-anchor', 'middle')
+    .text('Date')
 
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
@@ -44,6 +55,7 @@ d3.queue()
     .defer(d3.csv, 'csv/aircraft_incidents.csv', function (d) {
         return {
             number: d['Accident_Number'],
+            dateS: d['Event_Date'],
             date: new Date(d['Event_Date']),
             location: d['Location'],
             country: d['Country'],
@@ -81,12 +93,6 @@ function display(error, collegeCSV, stateCSV) {
         console.log('Error importing data ' + error);
     }
 
-    var mapSVG = d3.select('#vis')
-        .append('svg')
-        .classed('map', true)
-        .attr('width', width)
-        .attr('height', height);
-
     // draw map vis
     var projection = d3.geoAlbersUsa().scale(1000).translate([width / 2, height / 2]);
 
@@ -106,14 +112,6 @@ function display(error, collegeCSV, stateCSV) {
     var selection = collegeCSV.filter(function (d) {
         return (d.country == "United States" && projection([d.longitude, d.latitude]));
     });
-
-    var brush = d3.brushX()
-        .extent([d3.min(selection, function (d) { return d.date; }), d3.max(selection, function (d) { return d.date; })])
-        .on('brush end', brushed);
-
-    function brushed() {
-
-    }
 
     var locked = false;
 
@@ -167,26 +165,20 @@ function display(error, collegeCSV, stateCSV) {
     activateFunctions[0] = shrinkHeatMaps;
     activateFunctions[1] = drawHeatMaps;
 
+
     function drawHeatMaps() {
-        mapSVG.selectAll('circle')
-            .data(selection)
-            .transition()
-            .duration(1000)
-            .style('opacity', 0.075)
-            .attr('r', 12)
-            .attr('pointer-events', 'none');
+        circleStyle.opacity = 0.08;
+        circleStyle.radius = 12;
+        circleStyle.pointer = 'none';
+        drawCircles();
     }
 
     function shrinkHeatMaps() {
-        mapSVG.selectAll('circle')
-            .data(selection)
-            .transition()
-            .duration(1000)
-            .style('opacity', 1)
-            .attr('r', 4)
-            .attr('pointer-events', 'all');
+        circleStyle.opacity = 1;
+        circleStyle.radius = 4;
+        circleStyle.pointer = 'all';
+        drawCircles();
     }
-
 
     var circles = mapSVG
         .append('g')
@@ -194,32 +186,7 @@ function display(error, collegeCSV, stateCSV) {
         .data(selection)
         .enter()
         .append('circle')
-        .attr('class', 'incident')
-        .attr('text', function (d) {
-            return d.location;
-        })
-        .attr('cx', function (d) {
-            var pos = projection([d.longitude, d.latitude]);
-            if (pos == null) {
-                console.log(d);
-            }
-            return pos[0];
-        })
-        .attr('cy', function (d) {
-            var pos = projection([d.longitude, d.latitude]);
-            if (pos == null) {
-                console.log(d);
-            }
-            return pos[1];
-        })
-        .on('mouseover', showTooltip)
-        .on('mouseout', hideTooltip)
-        .attr('r', '0.5')
-        .transition()
-        .duration(750)
-        .attr('r', '4');
-
-
+    drawCircles();
 
     function showTooltip(d) {
         var mouse = d3.mouse(mapSVG.node()).map(function (d) {
@@ -228,8 +195,56 @@ function display(error, collegeCSV, stateCSV) {
         hoverTooltip.classed('hidden', false)
             .attr('style', 'left:' + (mouse[0] + 15) +
                 'px; top:' + (mouse[1] - 35) + 'px')
-            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.date + '<br />' + d.severity);
+            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.dateS + '<br />' + d.severity);
 
+    }
+    xScale.domain(d3.extent(selection, function (d) {
+        return d.date;
+    }));
+    optionsSVG.append('g')
+        .attr('class', 'x-axis')
+        .call(timeAxis);
+
+    optionsSVG.append('g')
+        .attr('class', 'brush')
+        .call(d3.brushX(xScale).extent([[0, 0], [width, 10]])
+            .on('brush', brushed));
+
+    function brushed() {
+        var time = d3.event.selection;
+        var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
+            return d.date >= xScale.invert(time[0]) && d.date <= xScale.invert(time[1]);
+        }));
+        circles.exit().remove();
+        circles.enter().append('circle')
+            .attr('r', '0');
+        drawCircles();
+    }
+
+    function drawCircles() {
+        mapSVG.selectAll('circle')
+            .data(selection)
+            .on('mouseover', showTooltip)
+            .on('mouseout', hideTooltip)
+            .attr('cx', function (d) {
+                var pos = projection([d.longitude, d.latitude]);
+                if (pos == null) {
+                    console.log(d);
+                }
+                return pos[0];
+            })
+            .attr('cy', function (d) {
+                var pos = projection([d.longitude, d.latitude]);
+                if (pos == null) {
+                    console.log(d);
+                }
+                return pos[1];
+            })
+            .attr('pointer-events', circleStyle.pointer)
+            .transition()
+            .duration(500)
+            .style('opacity', circleStyle.opacity)
+            .attr('r', circleStyle.radius);
     }
 
     function hideTooltip(d) {
