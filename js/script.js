@@ -2,9 +2,10 @@ var width = 940;
 var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
-var circleStyle = { radius: 4, opacity: 1, pointer: "all" };
+var circleStyle = { radius: 4, opacity: 1, pointer: "all", color: "black" };
 
 var selectedState = "";
+var selectedDatum = "";
 var lastIndex = -1;
 var activeIndex = 0;
 var activateFunctions = [];
@@ -37,9 +38,12 @@ var timeBar = optionsSVG.append('rect')
 
 var xScale = d3.scaleTime().range([0, width]);
 var timeAxis = d3.axisBottom(xScale);
-optionsSVG.append('text')
-    .style('text-anchor', 'middle')
-    .text('Date')
+optionsSVG.append("text")
+    .attr("transform",
+        "translate(" + (width / 2) + " ," +
+        (250 + 20) + ")")
+    .style("text-anchor", "middle")
+    .text("Date");
 
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
@@ -70,7 +74,7 @@ d3.queue()
             model: d['Model'],
             schedule: d['Schedule'],
             carrier: d['Air_Carrier'],
-            fatalies: +d['Total_Fatal_Injuries'],
+            fatalities: +d['Total_Fatal_Injuries'],
             injuries: +d['Total_Serious_Injuries'],
             uninjured: +d['Total_Uninjured'],
             weather: d['Weather_Condition'],
@@ -223,9 +227,11 @@ function display(error, collegeCSV, stateCSV) {
 
     function drawCircles() {
         mapSVG.selectAll('circle')
-            .data(selection)
+            .on('click', selectCircle)
             .on('mouseover', showTooltip)
-            .on('mouseout', hideTooltip)
+            .on('mouseout', function (d) {
+                hoverTooltip.classed('hidden', true);
+            })
             .attr('cx', function (d) {
                 var pos = projection([d.longitude, d.latitude]);
                 if (pos == null) {
@@ -243,14 +249,33 @@ function display(error, collegeCSV, stateCSV) {
             .attr('pointer-events', circleStyle.pointer)
             .transition()
             .duration(500)
+            .style('fill', circleStyle.color)
             .style('opacity', circleStyle.opacity)
             .attr('r', circleStyle.radius);
     }
 
-    function hideTooltip(d) {
-        hoverTooltip.classed('hidden', true);
+    function selectCircle(d) {
+        drawCircles();
+        if (selectedDatum != d.number) {
+            selectedDatum = d.number;
+            d3.selectAll('circle').filter(function (d) {
+                return d.number == selectedDatum;
+            })
+                .transition()
+                .duration(750)
+                .style('fill', 'red')
+                .attr('r', '6');
+            d3.select('#number').text(d.number);
+            d3.select('#makeModel').text(d.make + ' ' + d.model);
+            d3.select('#date').text(d.dateS);
+            d3.select('#severity').text(d.severity);
+            d3.select('#injuries').text(d.fatalities + ' fatalities, ' + d.injuries + ' injuries, ' + d.uninjured + ' uninjured');
+            d3.select('#city').text(d.location);
+            d3.select('#carrier').text(d.carrier);
+            d3.select('#airport').text('[' + d.airportCode + '] ' + d.airportName);
+            d3.select('#weather').text(d.weather);
+        }
     }
-
     scroll.on('active', function (index) {
         // highlight current step text
         d3.selectAll('.step')

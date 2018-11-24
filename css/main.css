@@ -1,6 +1,3 @@
-body {
-    font: 12px sans-serif;
-}
 #container>.title {
     font: 24px sans-serif;
     padding-left: 100px;
@@ -20,6 +17,10 @@ body {
 }
 .x-axis {
     padding-top: 20px;
+}
+.step-title {
+    font-size: 16px;
+    margin-bottom: 6px;
 }
 .brush {
     
@@ -46,7 +47,7 @@ body {
     padding-top: 60px;
     top:0;
     z-index:90;
-    padding-bottom: 400px;
+    padding-bottom: 200px;
     background-color: #fdfdfd;
 }
 
@@ -97,4 +98,8 @@ button.selected {
 
 circles {
     z-index: 3;
+}
+
+text {
+    font-size: 14px;
 }
