@@ -44,8 +44,22 @@
         <section class="step">
             <div class="title">Heat Maps</div>
             <div class="section-body">By changing these incident circles into heat circles, we can see where
-                incidents are most concentrated. However, because of the overlap, it is no longer useful to provide an
-                information tooltip.
+                incidents are most concentrated. Use the gradient below to guide you.
+                <br /><br />
+                <svg id="gradient" height="40" width="400">
+                    <defs>
+                        <linearGradient id="heat" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:rgb(0,0,0);stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <g>
+                        <rect id="heatRect" width="200" height="15" fill="url(#heat)" />
+                    </g>
+                </svg>
+                <br /><br />
+                <div class="section-body"> However, because of the overlap, it is no longer useful to provide an
+                    information tooltip. </div>
             </div>
         </section>
         <section class="step">

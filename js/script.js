@@ -37,11 +37,14 @@ var timeBar = optionsSVG.append('rect')
     .attr('height', 10);
 
 var xScale = d3.scaleTime().range([0, width]);
+var heatScale = d3.scaleLinear().domain([0, 15]).range([0, 200]);
+d3.select('#gradient').append('g')
+    .attr("transform", "translate(0,5)").call(d3.axisBottom(heatScale).tickSizeOuter(0));
 var timeAxis = d3.axisBottom(xScale);
 optionsSVG.append("text")
     .attr("transform",
         "translate(" + (width / 2) + " ," +
-        (250 + 20) + ")")
+        30 + ")")
     .style("text-anchor", "middle")
     .text("Date");
 

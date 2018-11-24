@@ -63,6 +63,9 @@
 .section-body {
     font: 14px sans-serif;
 }
+svg>text {
+    font-size: 18px;
+}
 
 #extra-space {
     height: 400px;
@@ -90,6 +93,10 @@ path.selected {
     fill: lightskyblue;
     stroke: gray;
 
+}
+
+svg>g {
+    padding-left: 10px;
 }
 
 button.selected {
