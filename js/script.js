@@ -7,16 +7,43 @@ var regionNames = ['FarWest', 'GreatLakes', 'GreatPlains', 'MidAtlantic', 'NewEn
     'OutlyingAreas', 'RockyMountains', 'Southeast', 'Southwest'];
 
 // create region selector
-var regionSelect = d3.select('#sections')
+var regionSelect = d3.select('#access-row')
     .append('g')
     .append('select')
     .attr('id', 'regionSelect');
 regionNames.forEach(function (region, idx, arr) {
     regionSelect.append('option').text(region);
 });
+var admissionsButton = d3.select('#access-row')
+    .append('g')
+    .append('button')
+    .attr('id', 'admissions-btn')
+    .text('Admissions');
+var populationButton = d3.select('#access-row')
+    .append('g')
+    .append('button')
+    .attr('id', 'population-btn')
+    .text('Population');
+var financeButton = d3.select('#access-row')
+    .append('g')
+    .append('button')
+    .attr('id', 'finance-btn')
+    .text('Finance');
+var debtButton = d3.select('#access-row')
+    .append('g')
+    .append('button')
+    .attr('id', 'debt-btn')
+    .text('Debt');
+var employmentButton = d3.select('#access-row')
+    .append('g')
+    .append('button')
+    .attr('id', 'employment-btn')
+    .text('Employment');
+var selectedButton = "";
 
 // hidden hoverTooltip
 var hoverTooltip = d3.select('#vis').append('div')
+    .attr('id', 'tooltip')
     .attr('class', 'hidden tooltip');
 
 // method to create leading zeroes
@@ -29,54 +56,50 @@ Number.prototype.pad = function (size) {
 var scroll = scroller().container(d3.select('#sections'));
 scroll(d3.selectAll('.step'));
 
-d3.csv('csv/colleges.csv', function (d) {
-    return {
-        // parse project data
-        control: d['Control'],
-        region: d['Region'],
-        locale: d['Locale'],
-        admissionRate: +d['Admission Rate'],
-        actMdn: +d['ACT Median'],
-        satAvg: +d['SAT Average'],
-        population: +d['Undergrad Population'],
-        whitePop: +d['% White'],
-        blackPop: +d['% Black'],
-        HispanicPop: +d['% Hispanic'],
-        indianPop: +d['% American Indian'],
-        pacificPop: +d['% Pacific Islander'],
-        biracialPop: +d['% Biracial'],
-        nrAlienPop: +d['% Nonresident Aliens'],
-        partTimers: +d['% Part-time Undergrads'],
-        avgCost: +d['Average Cost'],
-        studentCosts: +d['Expenditure Per Student'],
-        avgSalary: +d['Average Faculty Salary'],
-        faculty: +d['% Full-time Faculty'],
-        pellGrant: +d['% Undergrads with Pell Grant'],
-        completionRate: +d['Completion Rate 150% time'],
-        retentionRate: +d['Retention Rate (First Time Students)'],
-        olderUndergrads: +d['% Undergrads 25+ y.o.'],
-        defaultRate: +d['3 Year Default Rate'],
-        medianDebt: +d['Median Debt'],
-        medianGradDebt: +d['Median Debt on Graduation'],
-        medianWithdrawDebt: +d['Median Debt on Withdrawal'],
-        federalLoans: +d['% Federal Loans'],
-        pellGrants: +d['% Pell Grant Recipients'],
-        avgEntryAge: +d['Average Age of Entry'],
-        avgFamilyIncome: +d['Average Family Income'],
-        mdnFamilyIncome: +d['Median Family Income'],
-        povertyRate: +d['Poverty Rate'],
-        unemployedRate: +d['Number of Unemployed 8 years after entry'],
-        employedRate: +d['Number of Employed 8 years after entry'],
-        avgEarnings: +d['Mean Earnings 8 years After Entry'],
-        mdnEarnings: +d['Median Earnings 8 years After Entry']
-    };
-}, mainDisplay);
-
-function mainDisplay(error, csv) {
-    console.log(csv[0]);
-    if (error) throw error;
-    d3.csv('csv/states.csv', function (d) {
-        // parse states data, necessary to define regions
+d3.queue()
+    .defer(d3.csv, 'csv/colleges.csv', function (d) {
+        return {
+            // parse project data
+            control: d['Control'],
+            region: d['Region'],
+            locale: d['Locale'],
+            admissionRate: +d['Admission Rate'],
+            actMdn: +d['ACT Median'],
+            satAvg: +d['SAT Average'],
+            population: +d['Undergrad Population'],
+            whitePop: +d['% White'],
+            blackPop: +d['% Black'],
+            HispanicPop: +d['% Hispanic'],
+            indianPop: +d['% American Indian'],
+            pacificPop: +d['% Pacific Islander'],
+            biracialPop: +d['% Biracial'],
+            nrAlienPop: +d['% Nonresident Aliens'],
+            partTimers: +d['% Part-time Undergrads'],
+            avgCost: +d['Average Cost'],
+            studentCosts: +d['Expenditure Per Student'],
+            avgSalary: +d['Average Faculty Salary'],
+            faculty: +d['% Full-time Faculty'],
+            pellGrant: +d['% Undergrads with Pell Grant'],
+            completionRate: +d['Completion Rate 150% time'],
+            retentionRate: +d['Retention Rate (First Time Students)'],
+            olderUndergrads: +d['% Undergrads 25+ y.o.'],
+            defaultRate: +d['3 Year Default Rate'],
+            medianDebt: +d['Median Debt'],
+            medianGradDebt: +d['Median Debt on Graduation'],
+            medianWithdrawDebt: +d['Median Debt on Withdrawal'],
+            federalLoans: +d['% Federal Loans'],
+            pellGrants: +d['% Pell Grant Recipients'],
+            avgEntryAge: +d['Average Age of Entry'],
+            avgFamilyIncome: +d['Average Family Income'],
+            mdnFamilyIncome: +d['Median Family Income'],
+            povertyRate: +d['Poverty Rate'],
+            unemployedRate: +d['Number of Unemployed 8 years after entry'],
+            employedRate: +d['Number of Employed 8 years after entry'],
+            avgEarnings: +d['Mean Earnings 8 years After Entry'],
+            mdnEarnings: +d['Median Earnings 8 years After Entry']
+        };
+    })
+    .defer(d3.csv, 'csv/states.csv', function (d) {
         return {
             ansi: (+d.STATE).pad(2),
             stusab: d.STUSAB,
@@ -84,11 +107,13 @@ function mainDisplay(error, csv) {
             statens: d.STATENS,
             region: d.region
         };
-        // states function
-    }, display);
-}
+    })
+    .await(display);
 
-function display(error, stateCSV) {
+function display(error, collegeCSV, stateCSV) {
+    if (error) {
+        console.log('Error importing data ' + error);
+    }
     var lastIndex = -1;
     var activeIndex = 0;
 
@@ -122,7 +147,7 @@ function display(error, stateCSV) {
             locked = selectedRegion;
             recolorMap(selectedRegion);
         });
-        
+
     // region coloring method
     function recolorMap(selectedRegion) {
         mapSVG.selectAll('path')
@@ -173,7 +198,8 @@ function display(error, stateCSV) {
             hoverTooltip.classed('hidden', false)
                 .attr('style', 'left:' + (mouse[0] + 15) +
                     'px; top:' + (mouse[1] - 35) + 'px')
-                .html(d.region);
+                .html(d.region + "<br />");
+            generateTooltip(d.region);
         })
         .on('mouseout', function () {
             hoverTooltip.classed('hidden', true);
@@ -181,6 +207,20 @@ function display(error, stateCSV) {
                 recolorMap("");
             }
         });
+
+    admissionsButton.on('click', function () {
+        selectedButton = "admissions";
+        admissionsButton.classed('selected', true);
+    });
+
+    function generateTooltip(region) {
+        collegeCSV.filter(function (d) {
+            return d.region == selectedRegion;
+        })
+        d3.select('#tooltip')
+            .append('g')
+
+    }
 
     function updateVis(region) {
         var regionSelect = document.getElementById('regionSelect');

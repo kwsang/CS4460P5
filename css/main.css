@@ -3,6 +3,7 @@ body {
 }
 div.title {
     font: 24px sans-serif;
+    padding-bottom: 25px;
 }
 
 #vis {
@@ -64,4 +65,8 @@ path.selected {
     fill: lightskyblue;
     stroke: gray;
 
+}
+
+button.selected {
+    border-color: burlywood;
 }
