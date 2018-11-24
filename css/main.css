@@ -12,6 +12,7 @@ div.title {
     margin-left:50px;
     z-index:1;
 }
+
 .hidden {
     display: none;
 }
@@ -69,4 +70,8 @@ path.selected {
 
 button.selected {
     border-color: burlywood;
+}
+
+circles {
+    z-index: 3;
 }
