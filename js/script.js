@@ -5,12 +5,6 @@ var regionHeight = 400;
 
 var regionNames = ['FarWest', 'GreatLakes', 'GreatPlains', 'MidAtlantic', 'NewEngland',
     'OutlyingAreas', 'RockyMountains', 'Southeast', 'Southwest'];
-var path = d3.geoPath();
-var mapSVG = d3.select('#vis')
-    .append('svg')
-    .classed('map', true)
-    .attr('width', width)
-    .attr('height', height);
 
 // create region selector
 var regionSelect = d3.select('#sections')
@@ -24,12 +18,16 @@ regionNames.forEach(function (region, idx, arr) {
 // hidden hoverTooltip
 var hoverTooltip = d3.select('#vis').append('div')
     .attr('class', 'hidden tooltip');
+
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
     var s = String(this);
     while (s.length < (size || 2)) { s = "0" + s; }
     return s;
 }
+
+var scroll = scroller().container(d3.select('#sections'));
+scroll(d3.selectAll('.step'));
 
 d3.csv('csv/colleges.csv', function (d) {
     return {
@@ -90,6 +88,15 @@ function mainDisplay(error, csv) {
 }
 
 function display(error, stateCSV) {
+    var lastIndex = -1;
+    var activeIndex = 0;
+
+    var mapSVG = d3.select('#vis')
+        .append('svg')
+        .classed('map', true)
+        .attr('width', width)
+        .attr('height', height);
+
     var projection = d3.geoAlbersUsaPr(),
         path = d3.geoPath().projection(projection);
     var stateJson = topojson.feature(states, states.objects.states_20m_2017);
@@ -183,7 +190,14 @@ function display(error, stateCSV) {
     var selectedRegion = regionSelect.options[regionSelect.selectedIndex].value;
     recolorMap(selectedRegion);
 
+    scroll.on('active', function (index) {
+        // highlight current step text
+        d3.selectAll('.step')
+            .style('opacity', function (d, i) { return i === index ? 1 : 0.1; });
+    });
 
+    scroll.on('progress', function (index, progress) {
+    });
 }
 
 

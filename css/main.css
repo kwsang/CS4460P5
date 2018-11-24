@@ -2,7 +2,7 @@ body {
     font: 12px sans-serif;
 }
 div.title {
-    font: 20px sans-serif;
+    font: 24px sans-serif;
 }
 
 #vis {
@@ -20,9 +20,9 @@ div.title {
     display: inline-block;
     width: 600px;
     margin-left:940px;
-    top:0px;
+    top:150px;
     z-index:90;
-    background-color: #fbfbfb;
+    background-color: #fdfdfd;
 }
 
 .legend {
@@ -33,7 +33,13 @@ div.title {
 
 .step {
   margin-bottom: 200px;
+  opacity: 0.1;
 }
+
+.section-body {
+    font: 14px sans-serif;
+}
+
 div.tooltip {
     color: #222;
     background-color: #fafafa;
