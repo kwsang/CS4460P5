@@ -95,10 +95,6 @@ path.selected {
 
 }
 
-svg>g {
-    padding-left: 10px;
-}
-
 button.selected {
     border-color: burlywood;
 }

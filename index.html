@@ -23,7 +23,8 @@
             <div class="title">A First Glance, the Data as a Whole</div>
             <div class="section-body">We first plot every U.S.-related airplane incident that has an available
                 location. Using this kind of view, we can easily gather specific information about each incident by
-                hovering. However, because the circles have overlap, this kind of view makes it difficult to see where
+                selecting a circle. However, because the circles have overlap, this kind of view makes it difficult to
+                see where
                 incidents are concentrated.
                 <br /><br />
 
@@ -42,11 +43,11 @@
             </div>
         </section>
         <section class="step">
-            <div class="title">Heat Maps</div>
+            <div class="title">Location Heat Maps</div>
             <div class="section-body">By changing these incident circles into heat circles, we can see where
                 incidents are most concentrated. Use the gradient below to guide you.
                 <br /><br />
-                <svg id="gradient" height="40" width="400">
+                <svg id="gradient" height="40" width="380">
                     <defs>
                         <linearGradient id="heat" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" />
@@ -54,7 +55,7 @@
                         </linearGradient>
                     </defs>
                     <g>
-                        <rect id="heatRect" width="200" height="15" fill="url(#heat)" />
+                        <rect id="heatRect" width="300" height="15" fill="url(#heat)" />
                     </g>
                 </svg>
                 <br /><br />
@@ -63,9 +64,28 @@
             </div>
         </section>
         <section class="step">
-            <div class="title">Section 3</div>
+            <div class="title">Incidents by Severity (Color)</div>
+            <div class="section-body">While the previous visualization showed the density of incidents, it could not
+                separate the fatal incidents from the minor ones. By adding color onto our circles, we can better
+                understand which areas have a higher occurence of fatal airplane incidents.
+            </div>
+            <svg id="color" height="150" width="380">
+                <g>
+                    <rect x="0" y="0" width="40" height="40" fill="red" />
+                    <text x="45" y="20">Fatal Incidents</text>
+                </g>
+                <g>
+                    <rect x="0" y="45" width="40" height="40" fill="blue" />
+                    <text x="45" y="65">Non-Fatal Incidents</text>
+                </g>
+                <g>
+                    <rect x="0" y="90" width="40" height="40" fill="green" />
+                    <text x="45" y="110">Minor Incidents</text>
+                </g>
+            </svg>
         </section>
-        <section class="step">
+        <section class="
+                        step">
             <div class="title">Section 4</div>
         </section>
         <section class="step">

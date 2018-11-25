@@ -37,7 +37,7 @@ var timeBar = optionsSVG.append('rect')
     .attr('height', 10);
 
 var xScale = d3.scaleTime().range([0, width]);
-var heatScale = d3.scaleLinear().domain([0, 15]).range([0, 200]);
+var heatScale = d3.scaleLinear().domain([0, 12.5]).range([0, 300]);
 d3.select('#gradient').append('g')
     .attr("transform", "translate(0,5)").call(d3.axisBottom(heatScale).tickSizeOuter(0));
 var timeAxis = d3.axisBottom(xScale);
@@ -171,12 +171,15 @@ function display(error, collegeCSV, stateCSV) {
 
     activateFunctions[0] = shrinkHeatMaps;
     activateFunctions[1] = drawHeatMaps;
+    activateFunctions[2] = colorBySeverity;
+    activateFunctions[3] = colorBySeverity;
 
 
     function drawHeatMaps() {
         circleStyle.opacity = 0.08;
         circleStyle.radius = 12;
         circleStyle.pointer = 'none';
+        circleStyle.color = 'black';
         drawCircles();
     }
 
@@ -251,8 +254,38 @@ function display(error, collegeCSV, stateCSV) {
             })
             .attr('pointer-events', circleStyle.pointer)
             .transition()
-            .duration(500)
+            .duration(1000)
             .style('fill', circleStyle.color)
+            .style('opacity', circleStyle.opacity)
+            .attr('r', circleStyle.radius);
+    }
+
+    function colorBySeverity() {
+        console.log('logerg');
+        drawCircles();
+        circleStyle.opacity = 0.15;
+        var circles = mapSVG.selectAll('circle')
+            .data(selection)
+            .filter(function (d) { return d.severity.match(/Fatal\(/); })
+            .transition()
+            .duration(1000)
+            .style('fill', 'red')
+            .style('opacity', circleStyle.opacity)
+            .attr('r', circleStyle.radius);
+        var circles = mapSVG.selectAll('circle')
+            .data(selection)
+            .filter(function (d) { return d.severity.match(/Non-Fatal/); })
+            .transition()
+            .duration(1000)
+            .style('fill', 'blue')
+            .style('opacity', circleStyle.opacity)
+            .attr('r', circleStyle.radius);
+        var circles = mapSVG.selectAll('circle')
+            .data(selection)
+            .filter(function (d) { return d.severity.match(/Incident/); })
+            .transition()
+            .duration(1000)
+            .style('fill', 'green')
             .style('opacity', circleStyle.opacity)
             .attr('r', circleStyle.radius);
     }
@@ -267,7 +300,7 @@ function display(error, collegeCSV, stateCSV) {
                 .transition()
                 .duration(750)
                 .style('fill', 'red')
-                .attr('r', '6');
+                .attr('r', '7');
             d3.select('#number').text(d.number);
             d3.select('#makeModel').text(d.make + ' ' + d.model);
             d3.select('#date').text(d.dateS);
