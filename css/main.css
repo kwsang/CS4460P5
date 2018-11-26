@@ -98,6 +98,11 @@ path.selected {
 button.selected {
     border-color: burlywood;
 }
+circle {
+    border-radius: 1px;
+    stroke: black;
+    stroke-width: 1px;
+}
 
 circles {
     z-index: 3;

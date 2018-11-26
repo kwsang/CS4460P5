@@ -2,7 +2,8 @@ var width = 940;
 var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
-var circleStyle = { radius: 4, opacity: 1, pointer: "all", color: "black" };
+var circleStyle = { radius: 4, opacity: 1, pointer: "all", color: "black", type: 'dot', scale: 'uniform' };
+var circleHoverStyle = { radius: 4, opacity: 1, pointer: "all", color: "black" };
 
 var selectedState = "";
 var selectedDatum = "";
@@ -60,14 +61,22 @@ scroll(d3.selectAll('.step'));
 
 d3.queue()
     .defer(d3.csv, 'csv/aircraft_incidents.csv', function (d) {
+        var mapCoords = { lat: 0, long: 0 };
+        if (d['Latitude'] == '' && d['Longitude'] == '' && d['Country'] == 'United States' && d['Location'] != '') {
+            mapCoords.lat = +cityCoords[d['Location'].toLowerCase()].lat;
+            mapCoords.long = +cityCoords[d['Location'].toLowerCase()].long;
+        } else {
+            mapCoords.lat = +d['Latitude'];
+            mapCoords.long = +d['Longitude'];
+        }
         return {
             number: d['Accident_Number'],
             dateS: d['Event_Date'],
             date: new Date(d['Event_Date']),
             location: d['Location'],
             country: d['Country'],
-            latitude: +d['Latitude'],
-            longitude: +d['Longitude'],
+            latitude: mapCoords.lat,
+            longitude: mapCoords.long,
             airportCode: d['Airport_Code'],
             airportName: d['Airport_Name'],
             severity: d['Injury_Severity'],
@@ -171,22 +180,45 @@ function display(error, collegeCSV, stateCSV) {
 
     activateFunctions[0] = shrinkHeatMaps;
     activateFunctions[1] = drawHeatMaps;
-    activateFunctions[2] = colorBySeverity;
-    activateFunctions[3] = colorBySeverity;
+    activateFunctions[2] = drawColorCircles;
+    activateFunctions[3] = drawHeatFatalities;
 
 
     function drawHeatMaps() {
-        circleStyle.opacity = 0.08;
+        circleStyle.opacity = 0.05;
         circleStyle.radius = 12;
         circleStyle.pointer = 'none';
         circleStyle.color = 'black';
+        circleStyle.type = 'dot';
+        circleStyle.scale = 'uniform';
         drawCircles();
     }
 
     function shrinkHeatMaps() {
         circleStyle.opacity = 1;
         circleStyle.radius = 4;
+        circleStyle.color = 'black';
         circleStyle.pointer = 'all';
+        circleStyle.type = 'dot';
+        circleStyle.scale = 'uniform';
+        drawCircles();
+    }
+
+    function drawColorCircles() {
+        circleStyle.opacity = 0.08;
+        circleStyle.radius = 12;
+        circleStyle.pointer = 'none';
+        circleStyle.type = 'heat';
+        circleStyle.scale = 'uniform';
+        drawCircles();
+    }
+
+
+    function drawHeatFatalities() {
+        circleStyle.opacity = 1;
+        circleStyle.pointer = 'all';
+        circleStyle.type = 'heat';
+        circleStyle.scale = 'linear';
         drawCircles();
     }
 
@@ -205,7 +237,7 @@ function display(error, collegeCSV, stateCSV) {
         hoverTooltip.classed('hidden', false)
             .attr('style', 'left:' + (mouse[0] + 15) +
                 'px; top:' + (mouse[1] - 35) + 'px')
-            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.dateS + '<br />' + d.severity);
+            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.location + "<br />" + d.dateS + '<br />' + d.severity);
 
     }
     xScale.domain(d3.extent(selection, function (d) {
@@ -255,43 +287,33 @@ function display(error, collegeCSV, stateCSV) {
             .attr('pointer-events', circleStyle.pointer)
             .transition()
             .duration(1000)
-            .style('fill', circleStyle.color)
+            .style('fill', colorBySeverity)
             .style('opacity', circleStyle.opacity)
-            .attr('r', circleStyle.radius);
+            .attr('r', radiusBySeverity);
     }
 
-    function colorBySeverity() {
-        console.log('logerg');
-        drawCircles();
-        circleStyle.opacity = 0.15;
-        var circles = mapSVG.selectAll('circle')
-            .data(selection)
-            .filter(function (d) { return d.severity.match(/Fatal\(/); })
-            .transition()
-            .duration(1000)
-            .style('fill', 'red')
-            .style('opacity', circleStyle.opacity)
-            .attr('r', circleStyle.radius);
-        var circles = mapSVG.selectAll('circle')
-            .data(selection)
-            .filter(function (d) { return d.severity.match(/Non-Fatal/); })
-            .transition()
-            .duration(1000)
-            .style('fill', 'blue')
-            .style('opacity', circleStyle.opacity)
-            .attr('r', circleStyle.radius);
-        var circles = mapSVG.selectAll('circle')
-            .data(selection)
-            .filter(function (d) { return d.severity.match(/Incident/); })
-            .transition()
-            .duration(1000)
-            .style('fill', 'green')
-            .style('opacity', circleStyle.opacity)
-            .attr('r', circleStyle.radius);
+    function colorBySeverity(d) {
+        if (circleStyle.type == 'heat') {
+            if (d.severity.match(/Fatal\(/)) {
+                return 'red';
+            } else if (d.severity.match(/Non-Fatal/)) {
+                return 'blue';
+            } else if (d.severity.match(/Incident/)) {
+                return 'green';
+            }
+        }
+        return 'black';
+    }
+
+    function radiusBySeverity(d) {
+        if (circleStyle.scale == 'linear') {
+            var sizeScale = d3.scaleLinear().domain([1, 120]).range([2, 10]);
+            return sizeScale(d.fatalities);
+        }
+        return circleStyle.radius;
     }
 
     function selectCircle(d) {
-        drawCircles();
         if (selectedDatum != d.number) {
             selectedDatum = d.number;
             d3.selectAll('circle').filter(function (d) {
@@ -299,8 +321,8 @@ function display(error, collegeCSV, stateCSV) {
             })
                 .transition()
                 .duration(750)
-                .style('fill', 'red')
-                .attr('r', '7');
+                .style('border-color', 'white')
+                .attr('r', +this['attributes']['r'].value + 2);
             d3.select('#number').text(d.number);
             d3.select('#makeModel').text(d.make + ' ' + d.model);
             d3.select('#date').text(d.dateS);
@@ -312,6 +334,7 @@ function display(error, collegeCSV, stateCSV) {
             d3.select('#weather').text(d.weather);
         }
     }
+
     scroll.on('active', function (index) {
         // highlight current step text
         d3.selectAll('.step')
