@@ -24,30 +24,25 @@ var mapSVG = d3.select('#vis')
 
 var optionsSVG = d3.select('#options')
     .append('svg')
-    .attr('width', width)
+    .attr('width', width);
 
 // hidden hoverTooltip
 var hoverTooltip = d3.select('#vis').append('div')
     .attr('id', 'tooltip')
     .attr('class', 'hidden tooltip');
 
-var timeBar = optionsSVG.append('rect')
+//i have no idea what the purpose of this rectangle is
+/*var timeBar = optionsSVG.append('rect')
     .attr('x', 5)
-    .attr('x', 5)
+    .attr('y', 50)
     .attr('width', width)
-    .attr('height', 10);
+    .attr('height', 10);*/
 
 var xScale = d3.scaleTime().range([0, width]);
 var heatScale = d3.scaleLinear().domain([0, 12.5]).range([0, 300]);
 d3.select('#gradient').append('g')
     .attr("transform", "translate(0,5)").call(d3.axisBottom(heatScale).tickSizeOuter(0));
 var timeAxis = d3.axisBottom(xScale);
-optionsSVG.append("text")
-    .attr("transform",
-        "translate(" + (width / 2) + " ," +
-        30 + ")")
-    .style("text-anchor", "middle")
-    .text("Date");
 
 // method to create leading zeroes
 Number.prototype.pad = function (size) {
@@ -237,20 +232,38 @@ function display(error, collegeCSV, stateCSV) {
         hoverTooltip.classed('hidden', false)
             .attr('style', 'left:' + (mouse[0] + 15) +
                 'px; top:' + (mouse[1] - 35) + 'px')
-            .html(d.make + ' ' + d.model + ' ' + "<br />" + d.location + "<br />" + d.dateS + '<br />' + d.severity);
+            .html(d.make + ' ' + d.model + ' ' + '<br />' + d.location + '<br />' + d.dateS + '<br />' + d.severity);
 
     }
+    
     xScale.domain(d3.extent(selection, function (d) {
         return d.date;
     }));
+
+    //timeAxis formatting
+    timeAxis.tickSizeOuter(30);
+    timeAxis.tickSizeInner(35);
+    timeAxis.tickPadding(5);
+
     optionsSVG.append('g')
         .attr('class', 'x-axis')
         .call(timeAxis);
 
+    optionsSVG.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + 90 + ")")
+        .style("text-anchor", "middle")
+        .text("Date");
+
+    var brush = d3.brushX(xScale)
+        .extent([[0, 0], [width, 30]]);
+
     optionsSVG.append('g')
         .attr('class', 'brush')
-        .call(d3.brushX(xScale).extent([[0, 0], [width, 10]])
-            .on('brush', brushed));
+        .call(brush);
+
+    brush
+        .on('brush', brushed)
+        .on('end', brushend);
 
     function brushed() {
         var time = d3.event.selection;
@@ -261,6 +274,26 @@ function display(error, collegeCSV, stateCSV) {
         circles.enter().append('circle')
             .attr('r', '0');
         drawCircles();
+    }
+
+    //this is not currently working for some reason. i don't understand ;-;
+    function brushend() {
+        var time = d3.event.selection;
+        if (time == null) {
+            time = [0,0];
+        }
+        var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
+            return d.date >= xScale.invert(0);
+        }));
+        var length = time[1] - time[0];
+        if (length < 5) {
+            circles.enter().append('circle')
+                .attr('r', '0');
+            drawCircles();
+            //d3.select(".brush").call(brush.remove());
+        }
+        console.log(d3.event.selection);
+        console.log(length);
     }
 
     function drawCircles() {

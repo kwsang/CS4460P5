@@ -22,8 +22,17 @@
     font-size: 16px;
     margin-bottom: 6px;
 }
-.brush {
-    
+
+.tick>line {
+    fill: black;
+    stroke: black;
+    stroke-width: 2px;
+}
+
+.brush .extent {
+    fill-opacity: 1;
+    stroke: #000000;
+    shape-rendering: crispEdges;
 }
 
 #options {
