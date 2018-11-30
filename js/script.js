@@ -256,7 +256,7 @@ function display(error, collegeCSV, stateCSV) {
 
     var brush = d3.brushX(xScale)
         .extent([[0, 0], [width, 30]])
-        .on('brush', brushed);
+        .on('brush', brushed)
 
 
     optionsSVG.append('g')
@@ -271,10 +271,14 @@ function display(error, collegeCSV, stateCSV) {
                 */
             d3.selectAll('.brush')
                 .call(brush.move, null);
-            mapSVG.selectAll('circle').data(selection).enter().append('circle')
+                //trying to select only circles that don't already exist on the vis; currently unsuccessful
+            mapSVG.selectAll('circle').filter(function (d) {
+                return d.radius == null;
+            }).data(selection)
+                .enter().append('circle')
                 .attr('r', '0');
             drawCircles();
-        })
+        }) 
 
     function brushed() {
         var time = d3.event.selection;
@@ -288,29 +292,6 @@ function display(error, collegeCSV, stateCSV) {
         circles.enter().append('circle')
             .attr('r', '0');
         drawCircles();
-    }
-
-    //this is not currently working for some reason. i don't understand ;-;
-    function brushend() {
-        var time = d3.event.selection;
-        if (time == null) {
-            time = [0, 0];
-        }
-        var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
-            return d.date >= xScale.invert(time[0]) && d.date <= xScale.invert(time[1]);
-        }));
-        var length = time[1] - time[0];
-        if (length < 5) {
-            circles.exit().remove();
-            circles.enter().append('circle')
-                .attr('r', '0');
-            drawCircles();
-            d3.selectAll('.brush')
-                .call(brush.move, null);
-
-        }
-        console.log(d3.event.selection);
-        console.log(length);
     }
 
     function drawCircles() {
@@ -336,7 +317,7 @@ function display(error, collegeCSV, stateCSV) {
             })
             .attr('pointer-events', circleStyle.pointer)
             .transition()
-            .duration(1000)
+            .duration(950)
             .style('fill', colorBySeverity)
             .style('opacity', circleStyle.opacity)
             .attr('r', radiusBySeverity);
@@ -364,14 +345,25 @@ function display(error, collegeCSV, stateCSV) {
     }
 
     function selectCircle(d) {
+        //make unselected circles go back to their original size
+        d3.selectAll('circle').filter(function (d) {
+            return d.number == selectedDatum;
+        })
+            .transition()
+            .duration(800)
+            .style('border-color', 'white')
+            .style('fill', colorBySeverity)
+            .attr('r', radiusBySeverity);
+
         if (selectedDatum != d.number) {
             selectedDatum = d.number;
             d3.selectAll('circle').filter(function (d) {
                 return d.number == selectedDatum;
             })
                 .transition()
-                .duration(750)
+                .duration(800)
                 .style('border-color', 'white')
+                .style('fill', 'yellow')
                 .attr('r', +this['attributes']['r'].value + 2);
             d3.select('#number').text(d.number);
             d3.select('#makeModel').text(d.make + ' ' + d.model);

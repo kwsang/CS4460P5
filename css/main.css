@@ -98,15 +98,16 @@ path {
     fill: darkgray;
     stroke: white;
 }
-path.selected {
+
+/*path.selected {
     fill: lightskyblue;
     stroke: gray;
-
 }
 
 button.selected {
     border-color: burlywood;
-}
+}*/
+
 circle {
     border-radius: 1px;
     stroke: black;
