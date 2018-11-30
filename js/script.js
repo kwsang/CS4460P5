@@ -8,7 +8,7 @@ var circleHoverStyle = { radius: 4, opacity: 1, pointer: "all", color: "black" }
 var selectedState = "";
 var selectedDatum = "";
 var lastIndex = -1;
-var activeIndex = 0;
+var activeIndex = 1;
 var activateFunctions = [];
 var updateFunctions = []
 for (var i = 0; i < 9; i++) {
@@ -235,7 +235,7 @@ function display(error, collegeCSV, stateCSV) {
             .html(d.make + ' ' + d.model + ' ' + '<br />' + d.location + '<br />' + d.dateS + '<br />' + d.severity);
 
     }
-    
+
     xScale.domain(d3.extent(selection, function (d) {
         return d.date;
     }));
@@ -255,18 +255,32 @@ function display(error, collegeCSV, stateCSV) {
         .text("Date");
 
     var brush = d3.brushX(xScale)
-        .extent([[0, 0], [width, 30]]);
+        .extent([[0, 0], [width, 30]])
+        .on('brush', brushed);
+
 
     optionsSVG.append('g')
         .attr('class', 'brush')
         .call(brush);
 
-    brush
-        .on('brush', brushed)
-        .on('end', brushend);
+    d3.select('.brush')
+        .on('click', function (d) {
+            /*
+            d3.selectAll('.brush')
+                .call(brush.move, xScale.range());
+                */
+            d3.selectAll('.brush')
+                .call(brush.move, null);
+            mapSVG.selectAll('circle').data(selection).enter().append('circle')
+                .attr('r', '0');
+            drawCircles();
+        })
 
     function brushed() {
         var time = d3.event.selection;
+        if (time == null) {
+            time = [0, 0];
+        }
         var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
             return d.date >= xScale.invert(time[0]) && d.date <= xScale.invert(time[1]);
         }));
@@ -280,17 +294,20 @@ function display(error, collegeCSV, stateCSV) {
     function brushend() {
         var time = d3.event.selection;
         if (time == null) {
-            time = [0,0];
+            time = [0, 0];
         }
         var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
-            return d.date >= xScale.invert(0);
+            return d.date >= xScale.invert(time[0]) && d.date <= xScale.invert(time[1]);
         }));
         var length = time[1] - time[0];
         if (length < 5) {
+            circles.exit().remove();
             circles.enter().append('circle')
                 .attr('r', '0');
             drawCircles();
-            //d3.select(".brush").call(brush.remove());
+            d3.selectAll('.brush')
+                .call(brush.move, null);
+
         }
         console.log(d3.event.selection);
         console.log(length);
