@@ -382,23 +382,23 @@ function display(error, collegeCSV, stateCSV) {
         if (selectedDatum != d.number) {
             selectedDatum = d.number;
         }
-            d3.selectAll('circle').filter(function (d) {
-                return d.number == selectedDatum;
-            })
-                .transition()
-                .duration(800)
-                .style('border-color', 'white')
-                .style('fill', 'yellow')
-                .attr('r', +this['attributes']['r'].value);
-            d3.select('#number').text(d.number);
-            d3.select('#makeModel').text(d.make + ' ' + d.model);
-            d3.select('#date').text(d.dateS);
-            d3.select('#severity').text(d.severity);
-            d3.select('#injuries').text(d.fatalities + ' fatalities, ' + d.injuries + ' injuries, ' + d.uninjured + ' uninjured');
-            d3.select('#city').text(d.location);
-            d3.select('#carrier').text(d.carrier);
-            d3.select('#airport').text('[' + d.airportCode + '] ' + d.airportName);
-            d3.select('#weather').text(d.weather);
+        d3.selectAll('circle').filter(function (d) {
+            return d.number == selectedDatum;
+        })
+            .transition()
+            .duration(800)
+            .style('border-color', 'white')
+            .style('fill', 'yellow')
+            .attr('r', +this['attributes']['r'].value);
+        d3.selectAll('text.number').text(d.number);
+        d3.selectAll('text.makeModel').text(d.make + ' ' + d.model);
+        d3.selectAll('text.date').text(d.dateS);
+        d3.selectAll('text.severity').text(d.severity);
+        d3.selectAll('text.injuries').text(d.fatalities + ' fatalities, ' + d.injuries + ' injuries, ' + d.uninjured + ' uninjured');
+        d3.selectAll('text.city').text(d.location);
+        d3.selectAll('text.carrier').text(d.carrier);
+        d3.selectAll('text.airport').text('[' + d.airportCode + '] ' + d.airportName);
+        d3.selectAll('text.weather').text(d.weather);
     }
 
     scroll.on('active', function (index) {
