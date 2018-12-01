@@ -39,8 +39,11 @@ var hoverTooltip = d3.select('#vis').append('div')
 
 var xScale = d3.scaleTime().range([0, width]);
 var heatScale = d3.scaleLinear().domain([0, 12.5]).range([0, 300]);
-d3.select('#gradient').append('g')
+d3.select('.gradient').append('g')
     .attr("transform", "translate(0,5)").call(d3.axisBottom(heatScale).tickSizeOuter(0));
+var injuryScale = d3.scaleLinear().domain([0, 1]).range([0, 300]);
+d3.select('.injuryRate').append('g')
+    .attr("transform", "translate(0,5)").call(d3.axisBottom(injuryScale).tickSizeOuter(0));
 var timeAxis = d3.axisBottom(xScale);
 
 // method to create leading zeroes
@@ -323,6 +326,13 @@ function display(error, collegeCSV, stateCSV) {
             .duration(1000)
             .style('fill', colorBySeverity)
             .style('opacity', opacityByStyle)
+            .style('stroke', function (d) {
+                if (circleStyle.type == 'dot') {
+                    return 'white';
+                } else {
+                    return 'black';
+                }
+            })
             .attr('r', radiusBySeverity);
     }
 
