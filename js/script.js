@@ -381,7 +381,11 @@ function display(error, collegeCSV, stateCSV) {
     function selectCircle(d) {
         //make unselected circles go back to their original size
         d3.selectAll('circle').filter(function (d) {
-            return d.number == selectedDatum;
+            if (d != null) {
+                return d.number == selectedDatum;
+            } else {
+                return false;
+            }
         })
             .transition()
             .duration(800)
@@ -393,7 +397,11 @@ function display(error, collegeCSV, stateCSV) {
             selectedDatum = d.number;
         }
         d3.selectAll('circle').filter(function (d) {
-            return d.number == selectedDatum;
+            if (d != null) {
+                return d.number == selectedDatum;
+            } else {
+                return false;
+            }
         })
             .transition()
             .duration(800)
