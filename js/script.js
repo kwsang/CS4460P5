@@ -381,6 +381,7 @@ function display(error, collegeCSV, stateCSV) {
 
         if (selectedDatum != d.number) {
             selectedDatum = d.number;
+        }
             d3.selectAll('circle').filter(function (d) {
                 return d.number == selectedDatum;
             })
@@ -398,7 +399,6 @@ function display(error, collegeCSV, stateCSV) {
             d3.select('#carrier').text(d.carrier);
             d3.select('#airport').text('[' + d.airportCode + '] ' + d.airportName);
             d3.select('#weather').text(d.weather);
-        }
     }
 
     scroll.on('active', function (index) {
