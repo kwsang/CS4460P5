@@ -47,6 +47,7 @@
             <div class="section-body">By changing these incident circles into heat circles, we can see where
                 incidents are most concentrated. Use the gradient below to guide you.
                 <br /><br />
+                <text>Number of Incidents in an Area</text>
                 <svg class="gradient" height="40" width="380">
                     <defs>
                         <linearGradient id="heat" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -67,8 +68,11 @@
             <div class="title">Incidents by Severity (Color)</div>
             <div class="section-body">While the previous visualization showed the density of incidents, it could not
                 separate the fatal incidents from the minor ones. By adding color onto our circles, we can better
-                understand which areas have a higher occurence of fatal airplane incidents.
-            </div>
+                understand which areas have a higher occurence of fatal airplane incidents. It is also much easier to
+                see concentrations of certain types of incidents, such as a strong green color for multiple minor
+                incidents.<br />
+            </div><br />
+            <text>Type of Incident</text>
             <svg id="color" height="150" width="380">
                 <g>
                     <rect x="0" y="0" width="40" height="40" fill="red" />
@@ -83,6 +87,32 @@
                     <text x="45" y="110">Minor Incidents</text>
                 </g>
             </svg>
+            <text>Number of Incidents in an Area</text>
+            <svg class="gradient" height="60" width="380">
+                <defs>
+                    <linearGradient id="redheat" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:rgb(0,0,0);stop-opacity:0" />
+                        <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="greenheat" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:rgb(0,0,0);stop-opacity:0" />
+                        <stop offset="100%" style="stop-color:rgb(0,255,0);stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="blueheat" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:rgb(0,0,0);stop-opacity:0" />
+                        <stop offset="100%" style="stop-color:rgb(0,0,255);stop-opacity:0.5" />
+                    </linearGradient>
+                </defs>
+                <g>
+                    <rect class="heatRect" width="300" height="15" fill="url(#redheat)" />
+                </g>
+                <g>
+                    <rect y="20" class="heatRect" width="300" height="15" fill="url(#greenheat)" />
+                </g>
+                <g>
+                    <rect y="40" class="heatRect" width="300" height="15" fill="url(#blueheat)" />
+                </g>
+            </svg>
         </section>
         <section class="step">
             <div class="title">Incidents by Fatality (Size)</div>
@@ -91,7 +121,9 @@
                 Here you can more easily see the two most fatal airplane incidents: the Airbus A300 in New York in
                 November 2001 and the Boeing 747 in New York, 1996.
             </div>
-            <div class="section-body">A size scale is shown below:<br />
+            <div class="section-body">
+                <br />
+                Number of Fatalities
                 <svg id="size" height="150" width="380">
                     <g>
                         <circle cx="5" cy="30" r="2" fill="black" />
@@ -114,6 +146,22 @@
                         <text x="200" y="60">18</text>
                         <circle cx="255" cy="30" r="20" fill="black" />
                         <text x="250" y="60">20</text>
+                    </g>
+                </svg>
+
+                <text>Type of Incident</text>
+                <svg id="color" height="150" width="380">
+                    <g>
+                        <rect x="0" y="0" width="40" height="40" fill="red" />
+                        <text x="45" y="20">Fatal Incidents</text>
+                    </g>
+                    <g>
+                        <rect x="0" y="45" width="40" height="40" fill="blue" />
+                        <text x="45" y="65">Non-Fatal Incidents</text>
+                    </g>
+                    <g>
+                        <rect x="0" y="90" width="40" height="40" fill="green" />
+                        <text x="45" y="110">Minor Incidents</text>
                     </g>
                 </svg>
             </div>
@@ -123,9 +171,10 @@
             <div class="section-body">Similarly, we can do the same for the number of injuries which occurred in the
                 incident. Because the colors are no longer necessary, we can use this dimension to represent the rate
                 of injury in the incident. That is, the darkness of the circle represents how common was an injury
-                (both fatal and non-fatal) in any particular incident.
-            </div>
-            <div class="section-body">A size scale is shown below:<br />
+                (both fatal and non-fatal) in any particular incident. A size scale and gradient scale is shown below:
+            </div><br /><br />
+            <div class="section-body"><br />
+                <text>Number of Total Injuries (Fatal & Serious)</text>
                 <svg id="size" height="150" width="380">
                     <g>
                         <circle cx="5" cy="30" r="2" fill="black" />
@@ -140,9 +189,9 @@
                         <text x="80" y="60">10</text>
                         <circle cx="110" cy="30" r="12" fill="black" />
                         <text x="100" y="60">12</text>
-                        <circle cx="135" cy="30" r="14" fill="black" />
+                        <circle cx="140" cy="30" r="14" fill="black" />
                         <text x="130" y="60">14</text>
-                        <circle cx="165" cy="30" r="16" fill="black" />
+                        <circle cx="170" cy="30" r="16" fill="black" />
                         <text x="160" y="60">16</text>
                         <circle cx="210" cy="30" r="18" fill="black" />
                         <text x="200" y="60">18</text>
@@ -150,6 +199,7 @@
                         <text x="250" y="60">20</text>
                     </g>
                 </svg>
+                <text>Injury Rate (%)</text>
                 <svg class="injuryRate" height="40" width="380">
                     <defs>
                         <linearGradient id="heat" x1="0%" y1="0%" x2="100%" y2="0%">
