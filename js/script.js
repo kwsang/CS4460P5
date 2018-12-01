@@ -2,8 +2,7 @@ var width = 940;
 var height = 600;
 var regionWidth = 600;
 var regionHeight = 400;
-var circleStyle = { radius: 4, opacity: 1, pointer: "all", color: "black", type: 'dot', scale: 'uniform' };
-var circleHoverStyle = { radius: 4, opacity: 1, pointer: "all", color: "black" };
+var circleStyle = { radius: 4, opacity: 1, pointer: "all", color: "black", type: 'dot', scale: 'uniform', heatType: 'fatality' };
 
 var selectedState = "";
 var selectedDatum = "";
@@ -82,8 +81,10 @@ d3.queue()
             schedule: d['Schedule'],
             carrier: d['Air_Carrier'],
             fatalities: +d['Total_Fatal_Injuries'],
+            allinjuries: +d['Total_Fatal_Injuries'] + +d['Total_Serious_Injuries'],
             injuries: +d['Total_Serious_Injuries'],
             uninjured: +d['Total_Uninjured'],
+            total: +d['Total_Fatal_Injuries'] + +d['Total_Serious_Injuries'] + +d['Total_Uninjured'],
             weather: d['Weather_Condition'],
             flightPhase: d['Broad_Phase_of_Flight'],
             name: d['Location']
@@ -152,31 +153,13 @@ function display(error, collegeCSV, stateCSV) {
             } else {
                 return false;
             }
-        })
-        .on('mouseover', function (d) {
-            if (!locked) {
-                recolorMap(d.name);
-            }
-        })
-        .on('click', function (d) {
-            if (locked == false) {
-                recolorMap(d.name);
-                locked = d.name;
-            } else if (locked == d.name) {
-                recolorMap("");
-                locked = false;
-            }
-        })
-        .on('mouseout', function (d) {
-            if (!locked) {
-                recolorMap("");
-            }
         });
 
     activateFunctions[0] = shrinkHeatMaps;
     activateFunctions[1] = drawHeatMaps;
     activateFunctions[2] = drawColorCircles;
     activateFunctions[3] = drawHeatFatalities;
+    activateFunctions[4] = drawHeatInjuries;
 
 
     function drawHeatMaps() {
@@ -214,6 +197,16 @@ function display(error, collegeCSV, stateCSV) {
         circleStyle.pointer = 'all';
         circleStyle.type = 'heat';
         circleStyle.scale = 'linear';
+        circleStyle.heatType = 'fatality';
+        drawCircles();
+    }
+
+    function drawHeatInjuries() {
+        circleStyle.opacity = 1;
+        circleStyle.pointer = 'all';
+        circleStyle.type = 'heat';
+        circleStyle.scale = 'linear';
+        circleStyle.heatType = 'injury';
         drawCircles();
     }
 
@@ -232,7 +225,17 @@ function display(error, collegeCSV, stateCSV) {
         hoverTooltip.classed('hidden', false)
             .attr('style', 'left:' + (mouse[0] + 15) +
                 'px; top:' + (mouse[1] - 35) + 'px')
-            .html(d.make + ' ' + d.model + ' ' + '<br />' + d.location + '<br />' + d.dateS + '<br />' + d.severity);
+            .html(function () {
+                var tooltipData = d.make + ' ' + d.model + ' ' + '<br />' + d.location + '<br />' + d.dateS;
+                if (circleStyle.heatType == 'fatality') {
+                    return tooltipData + '<br />' + d.severity;
+                } else if (circleStyle.heatType == 'injury') {
+                    var rate = d.allinjuries / d.total;
+                    return tooltipData + '<br />Injuries: ' + d.allinjuries + '/' + d.total + '<br />Injury Rate: ' + Math.round(rate * 100) + ' % ';
+                } else {
+                    return tooltipData;
+                }
+            });
 
     }
 
@@ -258,7 +261,6 @@ function display(error, collegeCSV, stateCSV) {
         .extent([[0, 0], [width, 30]])
         .on('brush', brushed);
 
-
     optionsSVG.append('g')
         .attr('class', 'brush')
         .call(brush);
@@ -271,7 +273,12 @@ function display(error, collegeCSV, stateCSV) {
                 */
             d3.selectAll('.brush')
                 .call(brush.move, null);
-            mapSVG.selectAll('circle').data(selection).enter().append('circle')
+            //trying to select only circles that don't already exist on the vis; currently unsuccessful
+            mapSVG.selectAll('circle').filter(function (d) {
+                return d.radius == null;
+            })
+                .data(selection)
+                .enter().append('circle')
                 .attr('r', '0');
             drawCircles();
         })
@@ -288,29 +295,6 @@ function display(error, collegeCSV, stateCSV) {
         circles.enter().append('circle')
             .attr('r', '0');
         drawCircles();
-    }
-
-    //this is not currently working for some reason. i don't understand ;-;
-    function brushend() {
-        var time = d3.event.selection;
-        if (time == null) {
-            time = [0, 0];
-        }
-        var circles = mapSVG.selectAll('circle').data(selection.filter(function (d) {
-            return d.date >= xScale.invert(time[0]) && d.date <= xScale.invert(time[1]);
-        }));
-        var length = time[1] - time[0];
-        if (length < 5) {
-            circles.exit().remove();
-            circles.enter().append('circle')
-                .attr('r', '0');
-            drawCircles();
-            d3.selectAll('.brush')
-                .call(brush.move, null);
-
-        }
-        console.log(d3.event.selection);
-        console.log(length);
     }
 
     function drawCircles() {
@@ -338,18 +322,34 @@ function display(error, collegeCSV, stateCSV) {
             .transition()
             .duration(1000)
             .style('fill', colorBySeverity)
-            .style('opacity', circleStyle.opacity)
+            .style('opacity', opacityByStyle)
             .attr('r', radiusBySeverity);
+    }
+
+    function opacityByStyle(d) {
+        if (circleStyle.heatType == 'injury') {
+            var opacityScale = d3.scaleLinear().domain([0, 1]).range([0.5, 1]);
+            return opacityScale(d.allinjuries / d.total);
+        }
+        return circleStyle.opacity;
     }
 
     function colorBySeverity(d) {
         if (circleStyle.type == 'heat') {
-            if (d.severity.match(/Fatal\(/)) {
-                return 'red';
-            } else if (d.severity.match(/Non-Fatal/)) {
-                return 'blue';
-            } else if (d.severity.match(/Incident/)) {
-                return 'green';
+            switch (circleStyle.heatType) {
+                case 'fatality':
+                    if (d.severity.match(/Fatal\(/)) {
+                        return 'red';
+                    } else if (d.severity.match(/Non-Fatal/)) {
+                        return 'blue';
+                    } else if (d.severity.match(/Incident/)) {
+                        return 'green';
+                    }
+                case 'injury':
+                    var colorByScale = d3.scaleLinear().domain([0, 1]).range([255, 0]);
+                    var color = colorByScale(d.allinjuries / d.total);
+                    return 'rgb(' + color + ',' + color + ',' + color + ')';
+
             }
         }
         return 'black';
@@ -357,22 +357,38 @@ function display(error, collegeCSV, stateCSV) {
 
     function radiusBySeverity(d) {
         if (circleStyle.scale == 'linear') {
-            var sizeScale = d3.scaleLinear().domain([1, 120]).range([2, 10]);
-            return sizeScale(d.fatalities);
+            if (circleStyle.heatType == 'fatality') {
+                var sizeScale = d3.scaleLinear().domain([1, 120]).range([2, 10]);
+                return sizeScale(d.fatalities);
+            } else if (circleStyle.heatType == 'injury') {
+                var sizeScale = d3.scaleLinear().domain([1, 120]).range([2, 10]);
+                return sizeScale(d.allinjuries);
+            }
         }
         return circleStyle.radius;
     }
 
     function selectCircle(d) {
+        //make unselected circles go back to their original size
+        d3.selectAll('circle').filter(function (d) {
+            return d.number == selectedDatum;
+        })
+            .transition()
+            .duration(800)
+            .style('border-color', 'white')
+            .style('fill', colorBySeverity)
+            .attr('r', radiusBySeverity);
+
         if (selectedDatum != d.number) {
             selectedDatum = d.number;
             d3.selectAll('circle').filter(function (d) {
                 return d.number == selectedDatum;
             })
                 .transition()
-                .duration(750)
+                .duration(800)
                 .style('border-color', 'white')
-                .attr('r', +this['attributes']['r'].value + 2);
+                .style('fill', 'yellow')
+                .attr('r', +this['attributes']['r'].value);
             d3.select('#number').text(d.number);
             d3.select('#makeModel').text(d.make + ' ' + d.model);
             d3.select('#date').text(d.dateS);
